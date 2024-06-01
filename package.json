@@ -10,11 +10,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "aws-lambda": "^1.0.7",
     "aws-sdk": "^2.1632.0",
     "dynamodb-geo": "^0.4.0",
     "openapi-backend": "^5.10.6"
   },
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.138",
     "@types/aws-sdk": "^2.7.0",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.13.0",
