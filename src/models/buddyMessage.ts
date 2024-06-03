@@ -1,4 +1,4 @@
-export interface Message {
+export interface BuddyMessage {
     eventId: string;
     messageId: string;
     createdAt: string; // ISO date string

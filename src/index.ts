@@ -1,51 +1,54 @@
-import { APIGatewayEvent, Context, Callback, APIGatewayProxyResult } from 'aws-lambda';
-import OpenAPIBackend, { Request } from 'openapi-backend';
-import { transformHeaders, transformQueryParams } from './utils/utils';
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context as LambdaContext } from 'aws-lambda';
+import { OpenAPIBackend, Request } from 'openapi-backend';
+import { createNewEvent, getEvent, updateEvent, deleteEvent, searchEvents } from './handlers/events';
+import { createNewUser, getUser, updateUser, deleteUser, searchUsers } from './handlers/users';
+import { createNewTeam, getTeam, updateTeam, deleteTeam, searchTeams } from './handlers/teams';
+import { sendBuddyRequest, getBuddyRequest, updateBuddyRequest, removeBuddyRequest } from './handlers/buddies';
+import { sendMessage, getMessage, updateMessage, deleteMessage } from './handlers/messages';
 
-// Initialize the API
 const api = new OpenAPIBackend({ definition: './openapi.json' });
 
-// Register handlers
 api.register({
-  validationFail: (c, req, res) => res.status(400).json({ err: c.validation.errors }),
-  notFound: (c, req, res) => res.status(404).json({ err: 'not found' }),
+    // Events
+    createNewEvent,
+    getEvent,
+    updateEvent,
+    deleteEvent,
+    searchEvents,
+    // Users
+    createNewUser,
+    getUser,
+    updateUser,
+    deleteUser,
+    searchUsers,
+    // Teams
+    createNewTeam,
+    getTeam,
+    updateTeam,
+    deleteTeam,
+    searchTeams,
+    // Buddies
+    sendBuddyRequest,
+    getBuddyRequest,
+    updateBuddyRequest,
+    removeBuddyRequest,
+    // Messages
+    sendMessage,
+    getMessage,
+    updateMessage,
+    deleteMessage,
 });
 
 api.init();
 
-// Define the response interface
-interface LambdaResponse {
-  status: (statusCode: number) => {
-    json: (responseBody: any) => void;
-  };
-}
-
-// Lambda handler
-export const handler = async (event: APIGatewayEvent, context: Context, callback: Callback<APIGatewayProxyResult>): Promise<void> => {
-  const { httpMethod: method, path, queryStringParameters, headers, body } = event;
-
-  const req: Request = {
-    method,
-    path,
-    query: transformQueryParams(queryStringParameters),
-    headers: transformHeaders(headers),
-    body: body ? JSON.parse(body) : undefined,
-  };
-
-  const res: LambdaResponse = {
-    status: (statusCode: number) => ({
-      json: (responseBody: any) => {
-        const response: APIGatewayProxyResult = {
-          statusCode,
-          body: JSON.stringify(responseBody),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        };
-        callback(null, response);
-      },
-    }),
-  };
-
-  api.handleRequest(req, req, res);
+export const handler = async (event: APIGatewayProxyEvent, context: LambdaContext): Promise<APIGatewayProxyResult> => {
+    return api.handleRequest({
+        method: event.httpMethod,
+        path: event.path,
+        query: event.queryStringParameters,
+        headers: event.headers,
+        body: event.body ? JSON.parse(event.body) : {},
+        pathParameters: event.pathParameters,
+        requestContext: event.requestContext,
+    } as Request, event, context);
 };
