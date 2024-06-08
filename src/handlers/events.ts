@@ -7,13 +7,12 @@ import { extractStringParam } from '../utils/utils';
 export const getEventByIdHandler = async (c: Context): Promise<any> => {
   try {
     const eventId = extractStringParam(c.request.params.eventId);
-    const entityType = extractStringParam(c.request.params.entityType);
 
-    if (!eventId || !entityType) {
-      return HttpResponse.badRequest({ message: 'Event ID and Entity Type are required' });
+    if (!eventId) {
+      return HttpResponse.badRequest({ message: 'Event ID is required' });
     }
 
-    const eventData = await getEventById(eventId, entityType);
+    const eventData = await getEventById(eventId, 'event#Info');
 
     if (!eventData) {
       return HttpResponse.notFound({ message: 'Event not found' });
@@ -87,14 +86,13 @@ export const createEventHandler = async (c: Context): Promise<any> => {
 export const updateEventHandler = async (c: Context): Promise<any> => {
   try {
     const eventId = extractStringParam(c.request.params.eventId);
-    const entityType = extractStringParam(c.request.params.entityType);
     const updateData = c.request.body;
 
-    if (!eventId || !entityType) {
-      return HttpResponse.badRequest({ message: 'Event ID and Entity Type are required' });
+    if (!eventId) {
+      return HttpResponse.badRequest({ message: 'Event ID is required' });
     }
 
-    const updatedEvent = await updateEventById(eventId, entityType, updateData);
+    const updatedEvent = await updateEventById(eventId, 'event#Info', updateData);
 
     if (!updatedEvent) {
       return HttpResponse.notFound({ message: 'Event not found' });
@@ -110,13 +108,12 @@ export const updateEventHandler = async (c: Context): Promise<any> => {
 export const deleteEventHandler = async (c: Context): Promise<any> => {
   try {
     const eventId = extractStringParam(c.request.params.eventId);
-    const entityType = extractStringParam(c.request.params.entityType);
 
-    if (!eventId || !entityType) {
-      return HttpResponse.badRequest({ message: 'Event ID and Entity Type are required' });
+    if (!eventId) {
+      return HttpResponse.badRequest({ message: 'Event ID is required' });
     }
 
-    await deleteEventById(eventId, entityType);
+    await deleteEventById(eventId, 'event#Info');
     return HttpResponse.noContent();
   } catch (error) {
     console.error('Error deleting event:', error);
