@@ -1,89 +1,78 @@
-import { APIGatewayProxyResult } from 'aws-lambda';
 import { Context } from 'openapi-backend';
 import { createMessage, getMessageById, updateMessageById, deleteMessageById } from '../services/dynamoDbService';
-import { Message } from '../models/message';
+import { HttpResponse } from '../utils/response';
+import { extractStringParam } from '../utils/utils';
 
-export const sendMessage = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const requestBody = c.request.requestBody as Message;
+export const createMessageHandler = async (c: Context): Promise<any> => {
   try {
-    const newMessage = await createMessage(requestBody);
-    return {
-      statusCode: 201,
-      body: JSON.stringify(newMessage),
-    };
+    const messageData = c.request.body;
+
+    const createdMessage = await createMessage(messageData);
+    return HttpResponse.created(createdMessage);
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error creating message', error }),
-    };
+    console.error('Error creating message:', error);
+    return HttpResponse.internalServerError({ message: 'Error creating message', error });
   }
 };
 
-export const getMessage = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const messageId: string = Array.isArray(c.request.params.messageId) ? c.request.params.messageId[0] : c.request.params.messageId;
-  const eventId: string = Array.isArray(c.request.params.eventId) ? c.request.params.eventId[0] : c.request.params.eventId;
-  
+export const getMessageByIdHandler = async (c: Context): Promise<any> => {
   try {
-    const message = await getMessageById(messageId, eventId);
-    if (message) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify(message),
-      };
-    } else {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ message: 'Message not found' }),
-      };
+    const messageId = extractStringParam(c.request.params.messageId);
+    const eventId = extractStringParam(c.request.params.eventId);
+
+    if (!messageId || !eventId) {
+      return HttpResponse.badRequest({ message: 'Message ID and Event ID are required' });
     }
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error fetching message', error }),
-    };
-  }
-};
 
-export const updateMessage = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const messageId: string = Array.isArray(c.request.params.messageId) ? c.request.params.messageId[0] : c.request.params.messageId;
-  const eventId: string = Array.isArray(c.request.params.eventId) ? c.request.params.eventId[0] : c.request.params.eventId;
-  
-  const requestBody = c.request.requestBody as Partial<Message>;
-  try {
-    const updatedMessage = await updateMessageById(messageId, eventId, requestBody);
-    if (updatedMessage) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify(updatedMessage),
-      };
-    } else {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ message: 'Message not found' }),
-      };
+    const messageData = await getMessageById(messageId, eventId);
+
+    if (!messageData) {
+      return HttpResponse.notFound({ message: 'Message not found' });
     }
+
+    return HttpResponse.ok(messageData);
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error updating message', error }),
-    };
+    console.error('Error getting message:', error);
+    return HttpResponse.internalServerError({ message: 'Error getting message', error });
   }
 };
 
-export const deleteMessage = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const messageId: string = Array.isArray(c.request.params.messageId) ? c.request.params.messageId[0] : c.request.params.messageId;
-  const eventId: string = Array.isArray(c.request.params.eventId) ? c.request.params.eventId[0] : c.request.params.eventId;
-  
+export const updateMessageHandler = async (c: Context): Promise<any> => {
   try {
+    const messageId = extractStringParam(c.request.params.messageId);
+    const eventId = extractStringParam(c.request.params.eventId);
+    const updateData = c.request.body;
+
+    if (!messageId || !eventId) {
+      return HttpResponse.badRequest({ message: 'Message ID and Event ID are required' });
+    }
+
+    const updatedMessage = await updateMessageById(messageId, eventId, updateData);
+
+    if (!updatedMessage) {
+      return HttpResponse.notFound({ message: 'Message not found' });
+    }
+
+    return HttpResponse.ok(updatedMessage);
+  } catch (error) {
+    console.error('Error updating message:', error);
+    return HttpResponse.internalServerError({ message: 'Error updating message', error });
+  }
+};
+
+export const deleteMessageHandler = async (c: Context): Promise<any> => {
+  try {
+    const messageId = extractStringParam(c.request.params.messageId);
+    const eventId = extractStringParam(c.request.params.eventId);
+
+    if (!messageId || !eventId) {
+      return HttpResponse.badRequest({ message: 'Message ID and Event ID are required' });
+    }
+
     await deleteMessageById(messageId, eventId);
-    return {
-      statusCode: 204,
-      body: '',
-    };
+    return HttpResponse.noContent();
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error deleting message', error }),
-    };
+    console.error('Error deleting message:', error);
+    return HttpResponse.internalServerError({ message: 'Error deleting message', error });
   }
 };

@@ -1,986 +1,692 @@
 {
     "openapi": "3.0.1",
     "info": {
-      "title": "SportsIslife - Sports Companion API",
-      "version": "1.0.0"
+        "title": "Sports Interaction API",
+        "description": "API for managing events, users, teams, messages, buddies, and buddy messages.",
+        "version": "1.0.0"
     },
     "paths": {
-      "/users": {
-        "get": {
-          "summary": "Get all users",
-          "operationId": "getUsers",
-          "responses": {
-            "200": {
-              "description": "A list of users",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/User"
+        "/events/{eventId}": {
+            "get": {
+                "summary": "Get event info by eventId",
+                "operationId": "getEventById",
+                "parameters": [
+                    {
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
                     }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "post": {
-          "summary": "Create a new user",
-          "operationId": "createUser",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "User created successfully"
-            }
-          }
-        }
-      },
-      "/users/{userId}": {
-        "get": {
-          "summary": "Get a user by ID",
-          "operationId": "getUserById",
-          "parameters": [
-            {
-              "name": "userId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "User details",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/User"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "put": {
-          "summary": "Update a user by ID",
-          "operationId": "updateUserById",
-          "parameters": [
-            {
-              "name": "userId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "User updated successfully"
-            }
-          }
-        },
-        "delete": {
-          "summary": "Delete a user by ID",
-          "operationId": "deleteUserById",
-          "parameters": [
-            {
-              "name": "userId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "204": {
-              "description": "User deleted successfully"
-            }
-          }
-        }
-      },
-      "/events": {
-        "get": {
-          "summary": "Get all events",
-          "operationId": "getEvents",
-          "responses": {
-            "200": {
-              "description": "A list of events",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/Event"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event details retrieved successfully"
                     }
-                  }
                 }
-              }
-            }
-          }
-        },
-        "post": {
-          "summary": "Create a new event",
-          "operationId": "createEvent",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Event"
-                }
-              }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "Event created successfully"
-            }
-          }
-        }
-      },
-      "/events/{eventId}": {
-        "get": {
-          "summary": "Get an event by ID",
-          "operationId": "getEventById",
-          "parameters": [
-            {
-              "name": "eventId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Event details",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Event"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "put": {
-          "summary": "Update an event by ID",
-          "operationId": "updateEventById",
-          "parameters": [
-            {
-              "name": "eventId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Event"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Event updated successfully"
-            }
-          }
-        },
-        "delete": {
-          "summary": "Delete an event by ID",
-          "operationId": "deleteEventById",
-          "parameters": [
-            {
-              "name": "eventId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "204": {
-              "description": "Event deleted successfully"
-            }
-          }
-        }
-      },
-      "/events/proximity": {
-        "get": {
-          "summary": "Get events by proximity",
-          "operationId": "getEventsByProximity",
-          "parameters": [
-            {
-              "name": "latitude",
-              "in": "query",
-              "required": true,
-              "schema": {
-                "type": "number"
-              }
             },
-            {
-              "name": "longitude",
-              "in": "query",
-              "required": true,
-              "schema": {
-                "type": "number"
-              }
+            "put": {
+                "summary": "Update event",
+                "operationId": "updateEvent",
+                "parameters": [
+                    {
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Event updated successfully"
+                    }
+                }
             },
-            {
-              "name": "radius",
-              "in": "query",
-              "required": true,
-              "schema": {
-                "type": "number"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "List of events by proximity",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/Event"
+            "delete": {
+                "summary": "Delete event",
+                "operationId": "deleteEvent",
+                "parameters": [
+                    {
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
                     }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/teams": {
-        "get": {
-          "summary": "Get all teams",
-          "operationId": "getTeams",
-          "responses": {
-            "200": {
-              "description": "A list of teams",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/Team"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Event deleted successfully"
                     }
-                  }
                 }
-              }
             }
-          }
         },
-        "post": {
-          "summary": "Create a new team",
-          "operationId": "createTeam",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Team"
-                }
-              }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "Team created successfully"
-            }
-          }
-        }
-      },
-      "/teams/{teamId}": {
-        "get": {
-          "summary": "Get a team by ID",
-          "operationId": "getTeamById",
-          "parameters": [
-            {
-              "name": "teamId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Team details",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Team"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "put": {
-          "summary": "Update a team by ID",
-          "operationId": "updateTeamById",
-          "parameters": [
-            {
-              "name": "teamId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Team"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Team updated successfully"
-            }
-          }
-        },
-        "delete": {
-          "summary": "Delete a team by ID",
-          "operationId": "deleteTeamById",
-          "parameters": [
-            {
-              "name": "teamId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "204": {
-              "description": "Team deleted successfully"
-            }
-          }
-        }
-      },
-      "/messages": {
-        "get": {
-          "summary": "Get all messages",
-          "operationId": "getMessages",
-          "responses": {
-            "200": {
-              "description": "A list of messages",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/Message"
+        "/events": {
+            "post": {
+                "summary": "Create event",
+                "operationId": "createEvent",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
                     }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "post": {
-          "summary": "Create a new message",
-          "operationId": "createMessage",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Message"
-                }
-              }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "Message created successfully"
-            }
-          }
-        }
-      },
-      "/messages/{messageId}": {
-        "get": {
-          "summary": "Get a message by ID",
-          "operationId": "getMessageById",
-          "parameters": [
-            {
-              "name": "messageId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Message details",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Message"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "put": {
-          "summary": "Update a message by ID",
-          "operationId": "updateMessageById",
-          "parameters": [
-            {
-              "name": "messageId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Message"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Message updated successfully"
-            }
-          }
-        },
-        "delete": {
-          "summary": "Delete a message by ID",
-          "operationId": "deleteMessageById",
-          "parameters": [
-            {
-              "name": "messageId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "204": {
-              "description": "Message deleted successfully"
-            }
-          }
-        }
-      },
-      "/buddies": {
-        "get": {
-          "summary": "Get all buddies",
-          "operationId": "getBuddies",
-          "responses": {
-            "200": {
-              "description": "A list of buddies",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/Buddy"
+                },
+                "responses": {
+                    "201": {
+                        "description": "Event created successfully"
                     }
-                  }
                 }
-              }
             }
-          }
         },
-        "post": {
-          "summary": "Create a new buddy",
-          "operationId": "createBuddy",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Buddy"
-                }
-              }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "Buddy created successfully"
-            }
-          }
-        }
-      },
-      "/buddies/{buddyId}": {
-        "get": {
-          "summary": "Get a buddy by ID",
-          "operationId": "getBuddyById",
-          "parameters": [
-            {
-              "name": "buddyId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Buddy details",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Buddy"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "put": {
-          "summary": "Update a buddy by ID",
-          "operationId": "updateBuddyById",
-          "parameters": [
-            {
-              "name": "buddyId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Buddy"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Buddy updated successfully"
-            }
-          }
-        },
-        "delete": {
-          "summary": "Delete a buddy by ID",
-          "operationId": "deleteBuddyById",
-          "parameters": [
-            {
-              "name": "buddyId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "204": {
-              "description": "Buddy deleted successfully"
-            }
-          }
-        }
-      },
-      "/buddies/{userId}/list": {
-        "get": {
-          "summary": "Get list of buddies for a user",
-          "operationId": "getBuddiesForUser",
-          "parameters": [
-            {
-              "name": "userId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "List of buddies",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/Buddy"
+        "/events/location": {
+            "get": {
+                "summary": "Get events by location",
+                "operationId": "getEventsByLocation",
+                "parameters": [
+                    {
+                        "name": "latitude",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "longitude",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "sportType",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "period",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/buddyMessages": {
-        "get": {
-          "summary": "Get all buddy messages",
-          "operationId": "getBuddyMessages",
-          "responses": {
-            "200": {
-              "description": "A list of buddy messages",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/BuddyMessage"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Events retrieved successfully"
                     }
-                  }
                 }
-              }
             }
-          }
         },
-        "post": {
-          "summary": "Create a new buddy message",
-          "operationId": "createBuddyMessage",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BuddyMessage"
+        "/events/{eventId}/attendees": {
+            "get": {
+                "summary": "Get event attendees",
+                "operationId": "getEventAttendees",
+                "parameters": [
+                    {
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event attendees retrieved successfully"
+                    }
                 }
-              }
             }
-          },
-          "responses": {
-            "201": {
-              "description": "Buddy message created successfully"
+        },
+        "/users/{userId}": {
+            "get": {
+                "summary": "Get user info by userId",
+                "operationId": "getUserById",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User info retrieved successfully"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update user",
+                "operationId": "updateUser",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User updated successfully"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete user",
+                "operationId": "deleteUser",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "User deleted successfully"
+                    }
+                }
             }
-          }
+        },
+        "/users": {
+            "post": {
+                "summary": "Create user",
+                "operationId": "createUser",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User created successfully"
+                    }
+                }
+            }
+        },
+        "/users/location": {
+            "get": {
+                "summary": "Get users by location",
+                "operationId": "getUsersByLocation",
+                "parameters": [
+                    {
+                        "name": "latitude",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "longitude",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "sportsInterests",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "skillLevel",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Users retrieved successfully"
+                    }
+                }
+            }
+        },
+        "/teams/{teamId}": {
+            "get": {
+                "summary": "Get team info by teamId",
+                "operationId": "getTeamById",
+                "parameters": [
+                    {
+                        "name": "teamId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Team info retrieved successfully"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update team",
+                "operationId": "updateTeam",
+                "parameters": [
+                    {
+                        "name": "teamId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Team updated successfully"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete team",
+                "operationId": "deleteTeam",
+                "parameters": [
+                    {
+                        "name": "teamId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Team deleted successfully"
+                    }
+                }
+            }
+        },
+        "/teams": {
+            "post": {
+                "summary": "Create a team",
+                "operationId": "createTeam",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Team created successfully"
+                    }
+                }
+            }
+        },
+        "/teams/{teamId}/members": {
+            "get": {
+                "summary": "Get team members",
+                "operationId": "getTeamMembers",
+                "parameters": [
+                    {
+                        "name": "teamId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Team members retrieved successfully"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a team member",
+                "operationId": "createTeamMember",
+                "parameters": [
+                    {
+                        "name": "teamId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Team member created successfully"
+                    }
+                }
+            }
+        },
+        "/teams/location": {
+            "get": {
+                "summary": "Get teams by location",
+                "operationId": "getTeamsByLocation",
+                "parameters": [
+                    {
+                        "name": "latitude",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "longitude",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "sportsType",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Teams retrieved successfully"
+                    }
+                }
+            }
+        },
+        "/teams/{teamId}/members/{memberId}": {
+            "delete": {
+                "summary": "Delete team member",
+                "operationId": "deleteTeamMember",
+                "parameters": [
+                    {
+                        "name": "teamId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "memberId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Team member deleted successfully"
+                    }
+                }
+            }
+        },
+        "/messages/event/{eventId}": {
+            "get": {
+                "summary": "Get paginated (sorted) messages for an event",
+                "operationId": "getEventMessages",
+                "parameters": [
+                    {
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "pageSize",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "sortOrder",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Messages retrieved successfully"
+                    }
+                }
+            }
+        },
+        "/messages/{messageId}": {
+            "delete": {
+                "summary": "Delete message",
+                "operationId": "deleteMessage",
+                "parameters": [
+                    {
+                        "name": "messageId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Message deleted successfully"
+                    }
+                }
+            }
+        },
+        "/buddies/{userId}": {
+            "get": {
+                "summary": "Get list of buddies for a particular user",
+                "operationId": "getBuddiesByUserId",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Buddies retrieved successfully"
+                    }
+                }
+            }
+        },
+        "/buddies/{userId}/{buddyId}": {
+            "delete": {
+                "summary": "Remove buddy",
+                "operationId": "removeBuddy",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "buddyId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Buddy removed successfully"
+                    }
+                }
+            }
+        },
+        "/buddyMessages/{userId}/{buddyId}": {
+            "get": {
+                "summary": "Get paginated (sorted) messages between buddies",
+                "operationId": "getBuddyMessages",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "buddyId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "pageSize",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "sortOrder",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Messages retrieved successfully"
+                    }
+                }
+            }
+        },
+        "/buddyMessages/{messageId}": {
+            "delete": {
+                "summary": "Delete buddy message",
+                "operationId": "deleteBuddyMessage",
+                "parameters": [
+                    {
+                        "name": "messageId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Buddy message deleted successfully"
+                    }
+                }
+            }
         }
-      },
-      "/buddyMessages/{messageId}": {
-        "get": {
-          "summary": "Get a buddy message by ID",
-          "operationId": "getBuddyMessageById",
-          "parameters": [
-            {
-              "name": "messageId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Buddy message details",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BuddyMessage"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "put": {
-          "summary": "Update a buddy message by ID",
-          "operationId": "updateBuddyMessageById",
-          "parameters": [
-            {
-              "name": "messageId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BuddyMessage"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Buddy message updated successfully"
-            }
-          }
-        },
-        "delete": {
-          "summary": "Delete a buddy message by ID",
-          "operationId": "deleteBuddyMessageById",
-          "parameters": [
-            {
-              "name": "messageId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "204": {
-              "description": "Buddy message deleted successfully"
-            }
-          }
-        }
-      }
     },
     "components": {
-      "schemas": {
-        "User": {
-          "type": "object",
-          "properties": {
-            "userId": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string"
-            },
-  
-  
-            "email": {
-              "type": "string"
-            },
-            "sportsInterests": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "location": {
-              "type": "object",
-              "properties": {
-                "latitude": {
-                  "type": "number"
-                },
-                "longitude": {
-                  "type": "number"
-                }
-              }
-            },
-            "skillLevel": {
-              "type": "string"
-            },
-            "ratings": {
-              "type": "number"
-            }
-          },
-          "required": ["userId", "name", "email"]
-        },
-        "Event": {
-          "type": "object",
-          "properties": {
-            "eventId": {
-              "type": "string"
-            },
-            "entityType": {
-              "type": "string"
-            },
-            "sportType": {
-              "type": "string"
-            },
-            "location": {
-              "type": "object",
-              "properties": {
-                "latitude": {
-                  "type": "number"
-                },
-                "longitude": {
-                  "type": "number"
-                }
-              }
-            },
-            "title": {
-              "type": "string"
-            },
-            "schedule": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "description": {
-              "type": "string"
-            },
-            "status": {
-              "type": "string"
-            },
-            "requestedAt": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "joinedAt": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "role": {
-              "type": "string"
-            }
-          },
-          "required": ["eventId", "entityType", "sportType", "location", "title", "schedule"]
-        },
-        "Team": {
-          "type": "object",
-          "properties": {
-            "teamId": {
-              "type": "string"
-            },
-            "entityType": {
-              "type": "string"
-            },
-            "sportType": {
-              "type": "string"
-            },
-            "teamName": {
-              "type": "string"
-            },
-            "location": {
-              "type": "object",
-              "properties": {
-                "latitude": {
-                  "type": "number"
-                },
-                "longitude": {
-                  "type": "number"
-                }
-              }
-            },
-            "status": {
-              "type": "string"
-            },
-            "requestedAt": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "joinedAt": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "role": {
-              "type": "string"
-            }
-          },
-          "required": ["teamId", "entityType", "sportType", "teamName", "location"]
-        },
-        "Message": {
-          "type": "object",
-          "properties": {
-            "eventId": {
-              "type": "string"
-            },
-            "messageId": {
-              "type": "string"
-            },
-            "createdAt": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "postedBy": {
-              "type": "string"
-            },
-            "text": {
-              "type": "string"
-            },
-            "imageS3Key": {
-              "type": "string"
-            }
-          },
-          "required": ["eventId", "messageId", "createdAt", "postedBy", "text"]
-        },
-        "Buddy": {
-          "type": "object",
-          "properties": {
-            "userId": {
-              "type": "string"
-            },
-            "buddyId": {
-              "type": "string"
-            },
-            "connectionDate": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "status": {
-              "type": "string"
-            }
-          },
-          "required": ["userId", "buddyId", "connectionDate"]
-        },
-        "BuddyMessage": {
-          "type": "object",
-          "properties": {
-            "messageId": {
-              "type": "string"
-            },
-            "createdAt": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "senderId": {
-              "type": "string"
-            },
-            "recipientId": {
-              "type": "string"
-            },
-            "text": {
-              "type": "string"
-            }
-          },
-          "required": ["messageId", "createdAt", "senderId", "recipientId", "text"]
-        }
-      }
+        "schemas": {}
     }
-  }
+}

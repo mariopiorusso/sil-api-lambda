@@ -1,6 +1,6 @@
 export interface Team {
     teamId: string;
-    entityType: string;
+    entityType: string; // team#Info | team#User
     sportType: string;
     teamName: string;
     location: {
@@ -8,7 +8,7 @@ export interface Team {
         longitude: number;
     };
     status: string;
-    requestedAt: string; // ISO date string
-    joinedAt: string; // ISO date string
+    requestedAt: string;
+    joinedAt: string;
     role: string;
 }

@@ -1,5 +1,6 @@
 import * as AWS from 'aws-sdk';
 import * as ddbGeo from 'dynamodb-geo';
+import { v4 as uuidv4 } from 'uuid';
 import { Event } from '../models/event';
 import { Team } from '../models/team';
 import { User } from '../models/user';
@@ -25,7 +26,8 @@ const userGeoTableManager = new ddbGeo.GeoDataManager(userConfig);
 
 // Event functions
 export const createEvent = async (data: Event): Promise<Event> => {
-  const { eventId, entityType, location, ...otherData } = data;
+  const eventId = uuidv4();
+  const { location, ...otherData } = data;
   const params = {
     RangeKeyValue: { S: eventId },
     GeoPoint: {
@@ -35,19 +37,19 @@ export const createEvent = async (data: Event): Promise<Event> => {
     PutItemInput: {
       Item: {
         eventId: { S: eventId },
-        entityType: { S: entityType },
+        ...convertToDynamoDBItem(otherData),
         location: {
           M: {
             latitude: { N: location.latitude.toString() },
             longitude: { N: location.longitude.toString() },
           }
         },
-        ...convertToDynamoDBItem(otherData),
+        createdAt: { S: new Date().toISOString() }, // Auto-generate timestamp
       },
     },
   };
   await eventGeoTableManager.putPoint(params).promise();
-  return data;
+  return { ...data, eventId };
 };
 
 export const queryEvents = async (latitude: number, longitude: number, radiusInKm: number): Promise<Event[]> => {
@@ -64,16 +66,14 @@ export const queryEvents = async (latitude: number, longitude: number, radiusInK
 export const getEventById = async (eventId: string, entityType: string): Promise<Event | null> => {
   const params = {
     TableName: TABLE.Events,
-    IndexName: 'EventIdGSI',
-    KeyConditionExpression: 'eventId = :eventId and entityType = :entityType',
-    ExpressionAttributeValues: {
-      ':eventId': eventId,
-      ':entityType': entityType
+    Key: {
+      eventId: eventId,
+      entityType: entityType,
     }
   };
-  const result = await ddb.query(params).promise();
-  if (result.Items && result.Items.length > 0) {
-    return AWS.DynamoDB.Converter.unmarshall(result.Items[0]) as Event;
+  const result = await ddb.get(params).promise();
+  if (result.Item) {
+    return AWS.DynamoDB.Converter.unmarshall(result.Item) as Event;
   }
   return null;
 };
@@ -107,7 +107,8 @@ export const deleteEventById = async (eventId: string, entityType: string): Prom
 
 // Team functions
 export const createTeam = async (data: Team): Promise<Team> => {
-  const { teamId, entityType, location, ...otherData } = data;
+  const teamId = uuidv4();
+  const { location, ...otherData } = data;
   const params = {
     RangeKeyValue: { S: teamId },
     GeoPoint: {
@@ -117,19 +118,19 @@ export const createTeam = async (data: Team): Promise<Team> => {
     PutItemInput: {
       Item: {
         teamId: { S: teamId },
-        entityType: { S: entityType },
+        ...convertToDynamoDBItem(otherData),
         location: {
           M: {
             latitude: { N: location.latitude.toString() },
             longitude: { N: location.longitude.toString() },
           }
         },
-        ...convertToDynamoDBItem(otherData),
+        createdAt: { S: new Date().toISOString() }, // Auto-generate timestamp
       },
     },
   };
   await teamGeoTableManager.putPoint(params).promise();
-  return data;
+  return { ...data, teamId };
 };
 
 export const queryTeams = async (latitude: number, longitude: number, radiusInKm: number): Promise<Team[]> => {
@@ -146,16 +147,14 @@ export const queryTeams = async (latitude: number, longitude: number, radiusInKm
 export const getTeamById = async (teamId: string, entityType: string): Promise<Team | null> => {
   const params = {
     TableName: TABLE.Teams,
-    IndexName: 'TeamIdGSI',
-    KeyConditionExpression: 'teamId = :teamId and entityType = :entityType',
-    ExpressionAttributeValues: {
-      ':teamId': teamId,
-      ':entityType': entityType
+    Key: {
+      teamId: teamId,
+      entityType: entityType,
     }
   };
-  const result = await ddb.query(params).promise();
-  if (result.Items && result.Items.length > 0) {
-    return AWS.DynamoDB.Converter.unmarshall(result.Items[0]) as Team;
+  const result = await ddb.get(params).promise();
+  if (result.Item) {
+    return AWS.DynamoDB.Converter.unmarshall(result.Item) as Team;
   }
   return null;
 };
@@ -189,7 +188,8 @@ export const deleteTeamById = async (teamId: string, entityType: string): Promis
 
 // User functions
 export const createUser = async (data: User): Promise<User> => {
-  const { userId, location, ...otherData } = data;
+  const userId = uuidv4();
+  const { location, ...otherData } = data;
   const { latitude, longitude } = location;
   const params = {
     RangeKeyValue: { S: userId },
@@ -200,18 +200,19 @@ export const createUser = async (data: User): Promise<User> => {
     PutItemInput: {
       Item: {
         userId: { S: userId },
+        ...convertToDynamoDBItem(otherData),
         location: {
           M: {
             latitude: { N: latitude.toString() },
             longitude: { N: longitude.toString() },
           }
         },
-        ...convertToDynamoDBItem(otherData),
+        createdAt: { S: new Date().toISOString() }, // Auto-generate timestamp
       },
     },
   };
   await userGeoTableManager.putPoint(params).promise();
-  return data;
+  return { ...data, userId };
 };
 
 export const queryUsers = async (latitude: number, longitude: number, radiusInKm: number): Promise<User[]> => {
@@ -228,15 +229,13 @@ export const queryUsers = async (latitude: number, longitude: number, radiusInKm
 export const getUserById = async (userId: string): Promise<User | null> => {
   const params = {
     TableName: TABLE.Users,
-    IndexName: 'UserIdGSI',
-    KeyConditionExpression: 'userId = :userId',
-    ExpressionAttributeValues: {
-      ':userId': userId,
+    Key: {
+      userId: userId,
     }
   };
-  const result = await ddb.query(params).promise();
-  if (result.Items && result.Items.length > 0) {
-    return AWS.DynamoDB.Converter.unmarshall(result.Items[0]) as User;
+  const result = await ddb.get(params).promise();
+  if (result.Item) {
+    return AWS.DynamoDB.Converter.unmarshall(result.Item) as User;
   }
   return null;
 };

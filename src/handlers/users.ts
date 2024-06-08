@@ -1,104 +1,101 @@
-import { APIGatewayProxyResult } from 'aws-lambda';
 import { Context } from 'openapi-backend';
 import { createUser, getUserById, updateUserById, deleteUserById, queryUsers } from '../services/dynamoDbGeoService';
-import { User } from '../models/user';
+import { HttpResponse } from '../utils/response';
+import { extractStringParam } from '../utils/utils';
 
-export const createNewUser = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const requestBody = c.request.requestBody as User;
+export const getUserByIdHandler = async (c: Context): Promise<any> => {
   try {
-    const newUser = await createUser(requestBody);
-    return {
-      statusCode: 201,
-      body: JSON.stringify(newUser),
-    };
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error creating user', error }),
-    };
-  }
-};
+    const userId = extractStringParam(c.request.params.userId);
 
-export const getUser = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const userId: string = Array.isArray(c.request.params.userId) ? c.request.params.userId[0] : c.request.params.userId;
-  
-  try {
-    const user = await getUserById(userId);
-    if (user) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify(user),
-      };
-    } else {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ message: 'User not found' }),
-      };
+    if (!userId) {
+      return HttpResponse.badRequest({ message: 'User ID is required' });
     }
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error fetching user', error }),
-    };
-  }
-};
 
-export const updateUser = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const userId: string = Array.isArray(c.request.params.userId) ? c.request.params.userId[0] : c.request.params.userId;
-  const requestBody = c.request.requestBody as Partial<User>;
-  try {
-    const updatedUser = await updateUserById(userId, requestBody);
-    if (updatedUser) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify(updatedUser),
-      };
-    } else {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ message: 'User not found' }),
-      };
+    const userData = await getUserById(userId);
+
+    if (!userData) {
+      return HttpResponse.notFound({ message: 'User not found' });
     }
+
+    return HttpResponse.ok(userData);
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error updating user', error }),
-    };
+    console.error('Error getting user:', error);
+    return HttpResponse.internalServerError({ message: 'Error getting user', error });
   }
 };
 
-export const deleteUser = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const userId: string = Array.isArray(c.request.params.userId) ? c.request.params.userId[0] : c.request.params.userId;
+export const getUsersByLocationHandler = async (c: Context): Promise<any> => {
   try {
+    const latitude = extractStringParam(c.request.query.latitude);
+    const longitude = extractStringParam(c.request.query.longitude);
+    const radiusInKm = extractStringParam(c.request.query.radiusInKm);
+
+    if (!latitude || !longitude || !radiusInKm) {
+      return HttpResponse.badRequest({ message: 'Latitude, Longitude, and Radius in Km are required' });
+    }
+
+    const lat = parseFloat(latitude);
+    const lon = parseFloat(longitude);
+    const radius = parseFloat(radiusInKm);
+
+    if (isNaN(lat) || isNaN(lon) || isNaN(radius)) {
+      return HttpResponse.badRequest({ message: 'Latitude, Longitude, and Radius in Km must be valid numbers' });
+    }
+
+    const users = await queryUsers(lat, lon, radius);
+    return HttpResponse.ok(users);
+  } catch (error) {
+    console.error('Error getting users by location:', error);
+    return HttpResponse.internalServerError({ message: 'Error getting users by location', error });
+  }
+};
+
+export const createUserHandler = async (c: Context): Promise<any> => {
+  try {
+    const userData = c.request.body;
+
+    const createdUser = await createUser(userData);
+    return HttpResponse.created(createdUser);
+  } catch (error) {
+    console.error('Error creating user:', error);
+    return HttpResponse.internalServerError({ message: 'Error creating user', error });
+  }
+};
+
+export const updateUserHandler = async (c: Context): Promise<any> => {
+  try {
+    const userId = extractStringParam(c.request.params.userId);
+    const updateData = c.request.body;
+
+    if (!userId) {
+      return HttpResponse.badRequest({ message: 'User ID is required' });
+    }
+
+    const updatedUser = await updateUserById(userId, updateData);
+
+    if (!updatedUser) {
+      return HttpResponse.notFound({ message: 'User not found' });
+    }
+
+    return HttpResponse.ok(updatedUser);
+  } catch (error) {
+    console.error('Error updating user:', error);
+    return HttpResponse.internalServerError({ message: 'Error updating user', error });
+  }
+};
+
+export const deleteUserHandler = async (c: Context): Promise<any> => {
+  try {
+    const userId = extractStringParam(c.request.params.userId);
+
+    if (!userId) {
+      return HttpResponse.badRequest({ message: 'User ID is required' });
+    }
+
     await deleteUserById(userId);
-    return {
-      statusCode: 204,
-      body: '',
-    };
+    return HttpResponse.noContent();
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error deleting user', error }),
-    };
-  }
-};
-
-export const searchUsers = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const { latitude, longitude, radiusInKm } = c.request.query!;
-  try {
-    const lat: string = Array.isArray(latitude) ? latitude[0] : latitude;
-    const lon: string = Array.isArray(longitude) ? longitude[0] : longitude;
-    const radius: string = Array.isArray(radiusInKm) ? radiusInKm[0] : radiusInKm;
-
-    const users = await queryUsers(parseFloat(lat), parseFloat(lon), parseFloat(radius));
-    return {
-      statusCode: 200,
-      body: JSON.stringify(users),
-    };
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error querying users', error }),
-    };
+    console.error('Error deleting user:', error);
+    return HttpResponse.internalServerError({ message: 'Error deleting user', error });
   }
 };

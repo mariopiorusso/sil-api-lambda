@@ -1,109 +1,125 @@
-import { APIGatewayProxyResult } from 'aws-lambda';
 import { Context } from 'openapi-backend';
 import { createEvent, getEventById, updateEventById, deleteEventById, queryEvents } from '../services/dynamoDbGeoService';
-import { Event } from '../models/event';
+import { getEventAttendeesById } from '../services/dynamoDbService';
+import { HttpResponse } from '../utils/response';
+import { extractStringParam } from '../utils/utils';
 
-export const createNewEvent = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const requestBody = c.request.requestBody as Event;
+export const getEventByIdHandler = async (c: Context): Promise<any> => {
   try {
-    const newEvent = await createEvent(requestBody);
-    return {
-      statusCode: 201,
-      body: JSON.stringify(newEvent),
-    };
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error creating event', error }),
-    };
-  }
-};
+    const eventId = extractStringParam(c.request.params.eventId);
+    const entityType = extractStringParam(c.request.params.entityType);
 
-export const getEvent = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const eventId: string = Array.isArray(c.request.params.eventId) ? c.request.params.eventId[0] : c.request.params.eventId;
-  const entityType: string = Array.isArray(c.request.params.entityType) ? c.request.params.entityType[0] : c.request.params.entityType;
-  
-  try {
-    const event = await getEventById(eventId, entityType);
-    if (event) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify(event),
-      };
-    } else {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ message: 'Event not found' }),
-      };
+    if (!eventId || !entityType) {
+      return HttpResponse.badRequest({ message: 'Event ID and Entity Type are required' });
     }
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error fetching event', error }),
-    };
-  }
-};
 
-export const updateEvent = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const eventId: string = Array.isArray(c.request.params.eventId) ? c.request.params.eventId[0] : c.request.params.eventId;
-  const entityType: string = Array.isArray(c.request.params.entityType) ? c.request.params.entityType[0] : c.request.params.entityType;
-  
-  const requestBody = c.request.requestBody as Partial<Event>;
-  try {
-    const updatedEvent = await updateEventById(eventId, entityType, requestBody);
-    if (updatedEvent) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify(updatedEvent),
-      };
-    } else {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ message: 'Event not found' }),
-      };
+    const eventData = await getEventById(eventId, entityType);
+
+    if (!eventData) {
+      return HttpResponse.notFound({ message: 'Event not found' });
     }
+
+    return HttpResponse.ok(eventData);
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error updating event', error }),
-    };
+    console.error('Error getting event:', error);
+    return HttpResponse.internalServerError({ message: 'Error getting event', error });
   }
 };
 
-export const deleteEvent = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const eventId: string = Array.isArray(c.request.params.eventId) ? c.request.params.eventId[0] : c.request.params.eventId;
-  const entityType: string = Array.isArray(c.request.params.entityType) ? c.request.params.entityType[0] : c.request.params.entityType;
-  
+export const getEventsByLocationHandler = async (c: Context): Promise<any> => {
   try {
+    const latitude = extractStringParam(c.request.query.latitude);
+    const longitude = extractStringParam(c.request.query.longitude);
+    const radiusInKm = extractStringParam(c.request.query.radiusInKm);
+
+    if (!latitude || !longitude || !radiusInKm) {
+      return HttpResponse.badRequest({ message: 'Latitude, Longitude, and Radius in Km are required' });
+    }
+
+    const lat = parseFloat(latitude);
+    const lon = parseFloat(longitude);
+    const radius = parseFloat(radiusInKm);
+
+    if (isNaN(lat) || isNaN(lon) || isNaN(radius)) {
+      return HttpResponse.badRequest({ message: 'Latitude, Longitude, and Radius in Km must be valid numbers' });
+    }
+
+    const events = await queryEvents(lat, lon, radius);
+    return HttpResponse.ok(events);
+  } catch (error) {
+    console.error('Error getting events by location:', error);
+    return HttpResponse.internalServerError({ message: 'Error getting events by location', error });
+  }
+};
+
+export const getEventAttendeesHandler = async (c: Context): Promise<any> => {
+  try {
+    const eventId = extractStringParam(c.request.params.eventId);
+
+    if (!eventId) {
+      return HttpResponse.badRequest({ message: 'Event ID is required' });
+    }
+
+    const attendees = await getEventAttendeesById(eventId);
+    return HttpResponse.ok(attendees);
+  } catch (error) {
+    console.error('Error getting event attendees:', error);
+    return HttpResponse.internalServerError({ message: 'Error getting event attendees', error });
+  }
+};
+
+export const createEventHandler = async (c: Context): Promise<any> => {
+  try {
+    const eventData = c.request.body;
+
+    if (!eventData.location || !eventData.entityType) {
+      return HttpResponse.badRequest({ message: 'Location and Entity Type are required' });
+    }
+
+    const createdEvent = await createEvent(eventData);
+    return HttpResponse.created(createdEvent);
+  } catch (error) {
+    console.error('Error creating event:', error);
+    return HttpResponse.internalServerError({ message: 'Error creating event', error });
+  }
+};
+
+export const updateEventHandler = async (c: Context): Promise<any> => {
+  try {
+    const eventId = extractStringParam(c.request.params.eventId);
+    const entityType = extractStringParam(c.request.params.entityType);
+    const updateData = c.request.body;
+
+    if (!eventId || !entityType) {
+      return HttpResponse.badRequest({ message: 'Event ID and Entity Type are required' });
+    }
+
+    const updatedEvent = await updateEventById(eventId, entityType, updateData);
+
+    if (!updatedEvent) {
+      return HttpResponse.notFound({ message: 'Event not found' });
+    }
+
+    return HttpResponse.ok(updatedEvent);
+  } catch (error) {
+    console.error('Error updating event:', error);
+    return HttpResponse.internalServerError({ message: 'Error updating event', error });
+  }
+};
+
+export const deleteEventHandler = async (c: Context): Promise<any> => {
+  try {
+    const eventId = extractStringParam(c.request.params.eventId);
+    const entityType = extractStringParam(c.request.params.entityType);
+
+    if (!eventId || !entityType) {
+      return HttpResponse.badRequest({ message: 'Event ID and Entity Type are required' });
+    }
+
     await deleteEventById(eventId, entityType);
-    return {
-      statusCode: 204,
-      body: '',
-    };
+    return HttpResponse.noContent();
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error deleting event', error }),
-    };
-  }
-};
-
-export const searchEvents = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const { latitude, longitude, radiusInKm } = c.request.query!;
-  try {
-    const lat: string = Array.isArray(latitude) ? latitude[0] : latitude;
-    const lon: string = Array.isArray(longitude) ? longitude[0] : longitude;
-    const radius: string = Array.isArray(radiusInKm) ? radiusInKm[0] : radiusInKm;
-
-    const events = await queryEvents(parseFloat(lat), parseFloat(lon), parseFloat(radius));
-    return {
-      statusCode: 200,
-      body: JSON.stringify(events),
-    };
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error querying events', error }),
-    };
+    console.error('Error deleting event:', error);
+    return HttpResponse.internalServerError({ message: 'Error deleting event', error });
   }
 };

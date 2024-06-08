@@ -1,8 +1,8 @@
 export interface Message {
     eventId: string;
     messageId: string;
-    createdAt: string; // ISO date string
+    createdAt: string;
     postedBy: string;
-    text: string;
+    content: string;
     imageS3Key?: string;
 }

@@ -1,16 +1,17 @@
 export interface Event {
     eventId: string;
-    entityType: string;
+    entityType: string; // event#Info | event#User
     sportType: string;
     location: {
         latitude: number;
         longitude: number;
     };
     title: string;
-    schedule: string; // ISO date string
+    schedule: string;
     description: string;
-    status: string;
-    requestedAt: string; // ISO date string
-    joinedAt: string; // ISO date string
+    userId: string,
+    userStatus: string;
+    requestedAt: string;
+    joinedAt: string;
     role: string;
 }

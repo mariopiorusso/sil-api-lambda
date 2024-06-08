@@ -1,109 +1,104 @@
-import { APIGatewayProxyResult } from 'aws-lambda';
 import { Context } from 'openapi-backend';
 import { createTeam, getTeamById, updateTeamById, deleteTeamById, queryTeams } from '../services/dynamoDbGeoService';
-import { Team } from '../models/team';
+import { HttpResponse } from '../utils/response';
+import { extractStringParam } from '../utils/utils';
 
-export const createNewTeam = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const requestBody = c.request.requestBody as Team;
+export const createTeamHandler = async (c: Context): Promise<any> => {
   try {
-    const newTeam = await createTeam(requestBody);
-    return {
-      statusCode: 201,
-      body: JSON.stringify(newTeam),
-    };
+    const teamData = c.request.body;
+
+    const createdTeam = await createTeam(teamData);
+    return HttpResponse.created(createdTeam);
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error creating team', error }),
-    };
+    console.error('Error creating team:', error);
+    return HttpResponse.internalServerError({ message: 'Error creating team', error });
   }
 };
 
-export const getTeam = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const teamId: string = Array.isArray(c.request.params.teamId) ? c.request.params.teamId[0] : c.request.params.teamId;
-  const entityType: string = Array.isArray(c.request.params.entityType) ? c.request.params.entityType[0] : c.request.params.entityType;
-  
+export const getTeamByIdHandler = async (c: Context): Promise<any> => {
   try {
-    const team = await getTeamById(teamId, entityType);
-    if (team) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify(team),
-      };
-    } else {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ message: 'Team not found' }),
-      };
+    const teamId = extractStringParam(c.request.params.teamId);
+    const entityType = extractStringParam(c.request.params.entityType);
+
+    if (!teamId || !entityType) {
+      return HttpResponse.badRequest({ message: 'Team ID and Entity Type are required' });
     }
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error fetching team', error }),
-    };
-  }
-};
 
-export const updateTeam = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const teamId: string = Array.isArray(c.request.params.teamId) ? c.request.params.teamId[0] : c.request.params.teamId;
-  const entityType: string = Array.isArray(c.request.params.entityType) ? c.request.params.entityType[0] : c.request.params.entityType;
-  
-  const requestBody = c.request.requestBody as Partial<Team>;
-  try {
-    const updatedTeam = await updateTeamById(teamId, entityType, requestBody);
-    if (updatedTeam) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify(updatedTeam),
-      };
-    } else {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ message: 'Team not found' }),
-      };
+    const teamData = await getTeamById(teamId, entityType);
+
+    if (!teamData) {
+      return HttpResponse.notFound({ message: 'Team not found' });
     }
+
+    return HttpResponse.ok(teamData);
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error updating team', error }),
-    };
+    console.error('Error getting team:', error);
+    return HttpResponse.internalServerError({ message: 'Error getting team', error });
   }
 };
 
-export const deleteTeam = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const teamId: string = Array.isArray(c.request.params.teamId) ? c.request.params.teamId[0] : c.request.params.teamId;
-  const entityType: string = Array.isArray(c.request.params.entityType) ? c.request.params.entityType[0] : c.request.params.entityType;
-  
+export const getTeamsByLocationHandler = async (c: Context): Promise<any> => {
   try {
+    const latitude = extractStringParam(c.request.query.latitude);
+    const longitude = extractStringParam(c.request.query.longitude);
+    const radiusInKm = extractStringParam(c.request.query.radiusInKm);
+
+    if (!latitude || !longitude || !radiusInKm) {
+      return HttpResponse.badRequest({ message: 'Latitude, Longitude, and Radius in Km are required' });
+    }
+
+    const lat = parseFloat(latitude);
+    const lon = parseFloat(longitude);
+    const radius = parseFloat(radiusInKm);
+
+    if (isNaN(lat) || isNaN(lon) || isNaN(radius)) {
+      return HttpResponse.badRequest({ message: 'Latitude, Longitude, and Radius in Km must be valid numbers' });
+    }
+
+    const teams = await queryTeams(lat, lon, radius);
+    return HttpResponse.ok(teams);
+  } catch (error) {
+    console.error('Error getting teams by location:', error);
+    return HttpResponse.internalServerError({ message: 'Error getting teams by location', error });
+  }
+};
+
+export const updateTeamHandler = async (c: Context): Promise<any> => {
+  try {
+    const teamId = extractStringParam(c.request.params.teamId);
+    const entityType = extractStringParam(c.request.params.entityType);
+    const updateData = c.request.body;
+
+    if (!teamId || !entityType) {
+      return HttpResponse.badRequest({ message: 'Team ID and Entity Type are required' });
+    }
+
+    const updatedTeam = await updateTeamById(teamId, entityType, updateData);
+
+    if (!updatedTeam) {
+      return HttpResponse.notFound({ message: 'Team not found' });
+    }
+
+    return HttpResponse.ok(updatedTeam);
+  } catch (error) {
+    console.error('Error updating team:', error);
+    return HttpResponse.internalServerError({ message: 'Error updating team', error });
+  }
+};
+
+export const deleteTeamHandler = async (c: Context): Promise<any> => {
+  try {
+    const teamId = extractStringParam(c.request.params.teamId);
+    const entityType = extractStringParam(c.request.params.entityType);
+
+    if (!teamId || !entityType) {
+      return HttpResponse.badRequest({ message: 'Team ID and Entity Type are required' });
+    }
+
     await deleteTeamById(teamId, entityType);
-    return {
-      statusCode: 204,
-      body: '',
-    };
+    return HttpResponse.noContent();
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error deleting team', error }),
-    };
-  }
-};
-
-export const searchTeams = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const { latitude, longitude, radiusInKm } = c.request.query!;
-  try {
-    const lat: string = Array.isArray(latitude) ? latitude[0] : latitude;
-    const lon: string = Array.isArray(longitude) ? longitude[0] : longitude;
-    const radius: string = Array.isArray(radiusInKm) ? radiusInKm[0] : radiusInKm;
-
-    const teams = await queryTeams(parseFloat(lat), parseFloat(lon), parseFloat(radius));
-    return {
-      statusCode: 200,
-      body: JSON.stringify(teams),
-    };
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error querying teams', error }),
-    };
+    console.error('Error deleting team:', error);
+    return HttpResponse.internalServerError({ message: 'Error deleting team', error });
   }
 };

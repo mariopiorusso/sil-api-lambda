@@ -1,28 +1,3 @@
-import { APIGatewayEvent } from "aws-lambda";
-
-// Transform queryStringParameters to ensure all values are strings
-export const transformQueryParams = (queryParams: APIGatewayEvent['queryStringParameters']) => {
-  if (!queryParams) return {};
-  const transformed: { [key: string]: string | string[] } = {};
-  for (const key in queryParams) {
-    if (queryParams[key] !== undefined) {
-      transformed[key] = queryParams[key] as string;
-    }
-  }
-  return transformed;
-};
-
-// Transform headers to ensure all values are strings
-export const transformHeaders = (headers: APIGatewayEvent['headers']) => {
-  const transformed: { [key: string]: string | string[] } = {};
-  for (const key in headers) {
-    if (headers[key] !== undefined) {
-      transformed[key] = headers[key] as string;
-    }
-  }
-  return transformed;
-};
-
 export const convertToDynamoDBItem = (item: any): { [key: string]: AWS.DynamoDB.DocumentClient.AttributeValue } => {
   const dynamoItem: { [key: string]: AWS.DynamoDB.DocumentClient.AttributeValue } = {};
   for (const key in item) {
@@ -42,4 +17,20 @@ export const convertToDynamoDBItem = (item: any): { [key: string]: AWS.DynamoDB.
     }
   }
   return dynamoItem;
+};
+
+export const normalizeParams = (params: { [key: string]: string | undefined } | null): { [key: string]: string | string[] } => {
+  const normalizedParams: { [key: string]: string | string[] } = {};
+  if (params) {
+    for (const key in params) {
+      if (params[key] !== undefined) {
+        normalizedParams[key] = params[key] as string;
+      }
+    }
+  }
+  return normalizedParams;
+};
+
+export const extractStringParam = (param: string | string[] | undefined): string => {
+  return Array.isArray(param) ? param[0] : param || '';
 };

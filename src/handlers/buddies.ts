@@ -1,88 +1,78 @@
-import { APIGatewayProxyResult } from 'aws-lambda';
 import { Context } from 'openapi-backend';
 import { createBuddyRequest, getBuddyRequestById, updateBuddyRequestStatus, removeBuddy } from '../services/dynamoDbService';
-import { Buddy } from '../models/buddy';
+import { HttpResponse } from '../utils/response';
+import { extractStringParam } from '../utils/utils';
 
-export const sendBuddyRequest = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const requestBody = c.request.requestBody as Buddy;
+export const createBuddyRequestHandler = async (c: Context): Promise<any> => {
   try {
-    const newBuddyRequest = await createBuddyRequest(requestBody);
-    return {
-      statusCode: 201,
-      body: JSON.stringify(newBuddyRequest),
-    };
+    const buddyData = c.request.body;
+
+    const createdBuddyRequest = await createBuddyRequest(buddyData);
+    return HttpResponse.created(createdBuddyRequest);
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error sending buddy request', error }),
-    };
+    console.error('Error creating buddy request:', error);
+    return HttpResponse.internalServerError({ message: 'Error creating buddy request', error });
   }
 };
 
-export const getBuddyRequest = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const userId: string = Array.isArray(c.request.params.userId) ? c.request.params.userId[0] : c.request.params.userId;
-  const buddyId: string = Array.isArray(c.request.params.buddyId) ? c.request.params.buddyId[0] : c.request.params.buddyId;
-  
+export const getBuddyRequestByIdHandler = async (c: Context): Promise<any> => {
   try {
-    const buddyRequest = await getBuddyRequestById(userId, buddyId);
-    if (buddyRequest) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify(buddyRequest),
-      };
-    } else {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ message: 'Buddy request not found' }),
-      };
+    const userId = extractStringParam(c.request.params.userId);
+    const buddyId = extractStringParam(c.request.params.buddyId);
+
+    if (!userId || !buddyId) {
+      return HttpResponse.badRequest({ message: 'User ID and Buddy ID are required' });
     }
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error fetching buddy request', error }),
-    };
-  }
-};
 
-export const updateBuddyRequest = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const userId: string = Array.isArray(c.request.params.userId) ? c.request.params.userId[0] : c.request.params.userId;
-  const buddyId: string = Array.isArray(c.request.params.buddyId) ? c.request.params.buddyId[0] : c.request.params.buddyId;
-  const requestBody = c.request.requestBody as { status: string };
-  try {
-    const updatedBuddyRequest = await updateBuddyRequestStatus(userId, buddyId, requestBody.status);
-    if (updatedBuddyRequest) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify(updatedBuddyRequest),
-      };
-    } else {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ message: 'Buddy request not found' }),
-      };
+    const buddyRequestData = await getBuddyRequestById(userId, buddyId);
+
+    if (!buddyRequestData) {
+      return HttpResponse.notFound({ message: 'Buddy request not found' });
     }
+
+    return HttpResponse.ok(buddyRequestData);
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error updating buddy request', error }),
-    };
+    console.error('Error getting buddy request:', error);
+    return HttpResponse.internalServerError({ message: 'Error getting buddy request', error });
   }
 };
 
-export const removeBuddyRequest = async (c: Context): Promise<APIGatewayProxyResult> => {
-  const userId: string = Array.isArray(c.request.params.userId) ? c.request.params.userId[0] : c.request.params.userId;
-  const buddyId: string = Array.isArray(c.request.params.buddyId) ? c.request.params.buddyId[0] : c.request.params.buddyId;
-  
+export const updateBuddyRequestStatusHandler = async (c: Context): Promise<any> => {
   try {
+    const userId = extractStringParam(c.request.params.userId);
+    const buddyId = extractStringParam(c.request.params.buddyId);
+    const { status } = c.request.body;
+
+    if (!userId || !buddyId || !status) {
+      return HttpResponse.badRequest({ message: 'User ID, Buddy ID, and Status are required' });
+    }
+
+    const updatedBuddyRequest = await updateBuddyRequestStatus(userId, buddyId, status);
+
+    if (!updatedBuddyRequest) {
+      return HttpResponse.notFound({ message: 'Buddy request not found' });
+    }
+
+    return HttpResponse.ok(updatedBuddyRequest);
+  } catch (error) {
+    console.error('Error updating buddy request status:', error);
+    return HttpResponse.internalServerError({ message: 'Error updating buddy request status', error });
+  }
+};
+
+export const deleteBuddyRequestHandler = async (c: Context): Promise<any> => {
+  try {
+    const userId = extractStringParam(c.request.params.userId);
+    const buddyId = extractStringParam(c.request.params.buddyId);
+
+    if (!userId || !buddyId) {
+      return HttpResponse.badRequest({ message: 'User ID and Buddy ID are required' });
+    }
+
     await removeBuddy(userId, buddyId);
-    return {
-      statusCode: 204,
-      body: '',
-    };
+    return HttpResponse.noContent();
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Error removing buddy', error }),
-    };
+    console.error('Error deleting buddy request:', error);
+    return HttpResponse.internalServerError({ message: 'Error deleting buddy request', error });
   }
 };

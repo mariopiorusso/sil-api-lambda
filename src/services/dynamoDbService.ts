@@ -2,6 +2,7 @@ import * as AWS from 'aws-sdk';
 import { Message } from '../models/message';
 import { Buddy } from '../models/buddy';
 import { BuddyMessage } from '../models/buddyMessage';
+import { User } from '../models/user';
 import { convertToDynamoDBItem } from '../utils/utils';
 import { TABLE } from '../utils/constants';
 
@@ -11,7 +12,10 @@ const ddb = new AWS.DynamoDB.DocumentClient();
 export const createMessage = async (data: Message): Promise<Message> => {
   const params = {
     TableName: TABLE.Messages,
-    Item: data,
+    Item: {
+      ...data,
+      createdAt: new Date().toISOString(), // Auto-generate timestamp
+    },
   };
   await ddb.put(params).promise();
   return data;
@@ -60,7 +64,10 @@ export const deleteMessageById = async (messageId: string, eventId: string): Pro
 export const createBuddyRequest = async (data: Buddy): Promise<Buddy> => {
   const params = {
     TableName: TABLE.Buddies,
-    Item: data,
+    Item: {
+      ...data,
+      sentAt: new Date().toISOString(), // Auto-generate timestamp
+    },
   };
   await ddb.put(params).promise();
   return data;
@@ -85,12 +92,14 @@ export const updateBuddyRequestStatus = async (userId: string, buddyId: string, 
       userId: userId,
       buddyId: buddyId,
     },
-    UpdateExpression: 'set #status = :status',
+    UpdateExpression: 'set #status = :status, #connectionDate = :connectionDate',
     ExpressionAttributeNames: {
       '#status': 'status',
+      '#connectionDate': 'connectionDate',
     },
     ExpressionAttributeValues: {
       ':status': status,
+      ':connectionDate': status === 'accepted' ? new Date().toISOString() : null,
     },
     ReturnValues: 'UPDATED_NEW',
   };
@@ -113,7 +122,10 @@ export const removeBuddy = async (userId: string, buddyId: string): Promise<void
 export const createBuddyMessage = async (data: BuddyMessage): Promise<BuddyMessage> => {
   const params = {
     TableName: TABLE.BuddyMessages,
-    Item: convertToDynamoDBItem(data)
+    Item: {
+      ...convertToDynamoDBItem(data),
+      createdAt: new Date().toISOString(), // Auto-generate timestamp
+    }
   };
   await ddb.put(params).promise();
   return data;
@@ -156,4 +168,39 @@ export const deleteBuddyMessageById = async (messageId: string, buddyId: string)
     },
   };
   await ddb.delete(params).promise();
+};
+
+export const getEventAttendeesById = async (eventId: string): Promise<User[]> => {
+  const attendeeParams = {
+    TableName: TABLE.Events,
+    KeyConditionExpression: 'eventId = :eventId and begins_with(entityType, :entityTypePrefix)',
+    FilterExpression: '#userStatus = :accepted',
+    ExpressionAttributeValues: {
+      ':eventId': eventId,
+      ':entityTypePrefix': 'event#User',
+      ':accepted': 'accepted',
+    },
+    ExpressionAttributeNames: {
+      '#userStatus': 'userStatus',
+    },
+  };
+
+  const attendeesResult = await ddb.query(attendeeParams).promise();
+  const userIds = attendeesResult.Items ? attendeesResult.Items.map(item => item.userId) : [];
+
+  if (userIds.length === 0) {
+    return [];
+  }
+
+  const keys = userIds.map(userId => ({ userId: userId }));
+  const usersParams = {
+    RequestItems: {
+      [TABLE.Users]: {
+        Keys: keys
+      }
+    }
+  };
+
+  const usersResult = await ddb.batchGet(usersParams).promise();
+  return usersResult.Responses ? usersResult.Responses[TABLE.Users].map(item => AWS.DynamoDB.Converter.unmarshall(item) as User) : [];
 };
