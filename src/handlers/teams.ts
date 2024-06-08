@@ -1,30 +1,18 @@
 import { Context } from 'openapi-backend';
 import { createTeam, getTeamById, updateTeamById, deleteTeamById, queryTeams } from '../services/dynamoDbGeoService';
+import { getTeamMembersById } from '../services/dynamoDbService';
 import { HttpResponse } from '../utils/response';
 import { extractStringParam } from '../utils/utils';
-
-export const createTeamHandler = async (c: Context): Promise<any> => {
-  try {
-    const teamData = c.request.body;
-
-    const createdTeam = await createTeam(teamData);
-    return HttpResponse.created(createdTeam);
-  } catch (error) {
-    console.error('Error creating team:', error);
-    return HttpResponse.internalServerError({ message: 'Error creating team', error });
-  }
-};
 
 export const getTeamByIdHandler = async (c: Context): Promise<any> => {
   try {
     const teamId = extractStringParam(c.request.params.teamId);
-    const entityType = extractStringParam(c.request.params.entityType);
 
-    if (!teamId || !entityType) {
-      return HttpResponse.badRequest({ message: 'Team ID and Entity Type are required' });
+    if (!teamId) {
+      return HttpResponse.badRequest({ message: 'Team ID is required' });
     }
 
-    const teamData = await getTeamById(teamId, entityType);
+    const teamData = await getTeamById(teamId, 'team#Info');
 
     if (!teamData) {
       return HttpResponse.notFound({ message: 'Team not found' });
@@ -63,17 +51,44 @@ export const getTeamsByLocationHandler = async (c: Context): Promise<any> => {
   }
 };
 
+export const getTeamMembersHandler = async (c: Context): Promise<any> => {
+  try {
+    const teamId = extractStringParam(c.request.params.teamId);
+
+    if (!teamId) {
+      return HttpResponse.badRequest({ message: 'Team ID is required' });
+    }
+
+    const members = await getTeamMembersById(teamId);
+    return HttpResponse.ok(members);
+  } catch (error) {
+    console.error('Error getting team members:', error);
+    return HttpResponse.internalServerError({ message: 'Error getting team members', error });
+  }
+};
+
+export const createTeamHandler = async (c: Context): Promise<any> => {
+  try {
+    const teamData = c.request.body;
+
+    const createdTeam = await createTeam(teamData);
+    return HttpResponse.created(createdTeam);
+  } catch (error) {
+    console.error('Error creating team:', error);
+    return HttpResponse.internalServerError({ message: 'Error creating team', error });
+  }
+};
+
 export const updateTeamHandler = async (c: Context): Promise<any> => {
   try {
     const teamId = extractStringParam(c.request.params.teamId);
-    const entityType = extractStringParam(c.request.params.entityType);
     const updateData = c.request.body;
 
-    if (!teamId || !entityType) {
-      return HttpResponse.badRequest({ message: 'Team ID and Entity Type are required' });
+    if (!teamId) {
+      return HttpResponse.badRequest({ message: 'Team ID is required' });
     }
 
-    const updatedTeam = await updateTeamById(teamId, entityType, updateData);
+    const updatedTeam = await updateTeamById(teamId, 'team#Info', updateData);
 
     if (!updatedTeam) {
       return HttpResponse.notFound({ message: 'Team not found' });
@@ -89,13 +104,12 @@ export const updateTeamHandler = async (c: Context): Promise<any> => {
 export const deleteTeamHandler = async (c: Context): Promise<any> => {
   try {
     const teamId = extractStringParam(c.request.params.teamId);
-    const entityType = extractStringParam(c.request.params.entityType);
 
-    if (!teamId || !entityType) {
-      return HttpResponse.badRequest({ message: 'Team ID and Entity Type are required' });
+    if (!teamId) {
+      return HttpResponse.badRequest({ message: 'Team ID is required' });
     }
 
-    await deleteTeamById(teamId, entityType);
+    await deleteTeamById(teamId, 'team#Info');
     return HttpResponse.noContent();
   } catch (error) {
     console.error('Error deleting team:', error);

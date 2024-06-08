@@ -173,11 +173,46 @@ export const deleteBuddyMessageById = async (messageId: string, buddyId: string)
 export const getEventAttendeesById = async (eventId: string): Promise<User[]> => {
   const attendeeParams = {
     TableName: TABLE.Events,
-    KeyConditionExpression: 'eventId = :eventId and begins_with(entityType, :entityTypePrefix)',
+    KeyConditionExpression: 'eventId = :eventId and entityType = :entityType',
     FilterExpression: '#userStatus = :accepted',
     ExpressionAttributeValues: {
       ':eventId': eventId,
-      ':entityTypePrefix': 'event#User',
+      ':entityType': 'event#User',
+      ':accepted': 'accepted',
+    },
+    ExpressionAttributeNames: {
+      '#userStatus': 'userStatus',
+    },
+  };
+
+  const attendeesResult = await ddb.query(attendeeParams).promise();
+  const userIds = attendeesResult.Items ? attendeesResult.Items.map(item => item.userId) : [];
+
+  if (userIds.length === 0) {
+    return [];
+  }
+
+  const keys = userIds.map(userId => ({ userId: userId }));
+  const usersParams = {
+    RequestItems: {
+      [TABLE.Users]: {
+        Keys: keys
+      }
+    }
+  };
+
+  const usersResult = await ddb.batchGet(usersParams).promise();
+  return usersResult.Responses ? usersResult.Responses[TABLE.Users].map(item => AWS.DynamoDB.Converter.unmarshall(item) as User) : [];
+};
+
+export const getTeamMembersById = async (teamId: string): Promise<User[]> => {
+  const attendeeParams = {
+    TableName: TABLE.Teams,
+    KeyConditionExpression: 'teamId = :teamId and entityType = :entityType',
+    FilterExpression: '#userStatus = :accepted',
+    ExpressionAttributeValues: {
+      ':teamId': teamId,
+      ':entityType': 'event#User',
       ':accepted': 'accepted',
     },
     ExpressionAttributeNames: {

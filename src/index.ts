@@ -4,7 +4,7 @@ import { getEventByIdHandler, getEventsByLocationHandler, getEventAttendeesHandl
 import { getUserByIdHandler, getUsersByLocationHandler, createUserHandler, updateUserHandler, deleteUserHandler } from './handlers/users';
 import { createMessageHandler, getMessageByIdHandler, updateMessageHandler, deleteMessageHandler } from './handlers/messages';
 import { createBuddyRequestHandler, getBuddyRequestByIdHandler, updateBuddyRequestStatusHandler, deleteBuddyRequestHandler } from './handlers/buddies';
-import { createTeamHandler, getTeamByIdHandler, getTeamsByLocationHandler, updateTeamHandler, deleteTeamHandler } from './handlers/teams';
+import { createTeamHandler, getTeamByIdHandler, getTeamsByLocationHandler, updateTeamHandler, deleteTeamHandler, getTeamMembersHandler } from './handlers/teams';
 import { normalizeParams } from './utils/utils';
 
 // Initialize OpenAPIBackend with your API definition
@@ -40,6 +40,7 @@ api.register({
   getTeamsByLocation: getTeamsByLocationHandler,
   updateTeam: updateTeamHandler,
   deleteTeam: deleteTeamHandler,
+  getTeamMembers: getTeamMembersHandler,
 });
 
 // Initialize the API
