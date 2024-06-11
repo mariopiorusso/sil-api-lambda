@@ -1,10 +1,10 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
-import OpenAPIBackend, { Context, Document } from 'openapi-backend';
-import { getEventByIdHandler, getEventsByLocationHandler, getEventAttendeesHandler, createEventHandler, updateEventHandler, deleteEventHandler } from './handlers/events';
+import OpenAPIBackend from 'openapi-backend';
+import { getEventByIdHandler, getEventsByLocationHandler, searchEventsHandler, getEventAttendeesHandler, createEventHandler, updateEventHandler, deleteEventHandler } from './handlers/events';
 import { getUserByIdHandler, getUsersByLocationHandler, createUserHandler, updateUserHandler, deleteUserHandler } from './handlers/users';
-import { createMessageHandler, getMessageByIdHandler, updateMessageHandler, deleteMessageHandler } from './handlers/messages';
-import { createBuddyRequestHandler, getBuddyRequestByIdHandler, updateBuddyRequestStatusHandler, deleteBuddyRequestHandler } from './handlers/buddies';
-import { createTeamHandler, getTeamByIdHandler, getTeamsByLocationHandler, updateTeamHandler, deleteTeamHandler, getTeamMembersHandler } from './handlers/teams';
+import { getPendingBuddyRequestsHandler, getAcceptedBuddiesHandler, createBuddyRequestHandler, getBuddyRequestByIdHandler, updateBuddyRequestStatusHandler, deleteBuddyRequestHandler } from './handlers/buddies';
+import { getEventMessagesHandler, createEventMessageHandler, updateEventMessageHandler, deleteEventMessageHandler } from './handlers/messages';
+import { createTeamHandler, getTeamByIdHandler, getTeamsByLocationHandler, searchTeamsHandler, updateTeamHandler, deleteTeamHandler, getTeamMembersHandler } from './handlers/teams';
 import { normalizeParams } from './utils/utils';
 
 // Initialize OpenAPIBackend with your API definition
@@ -14,10 +14,15 @@ const api = new OpenAPIBackend({ definition: './sil-openapi.json' });
 api.register({
   getEventById: getEventByIdHandler,
   getEventsByLocation: getEventsByLocationHandler,
+  searchEvents: searchEventsHandler,
   getEventAttendees: getEventAttendeesHandler,
+  getEventMessages: getEventMessagesHandler,
   createEvent: createEventHandler,
+  createEventMessage: createEventMessageHandler,
   updateEvent: updateEventHandler,
+  updateEventMessage: updateEventMessageHandler,
   deleteEvent: deleteEventHandler,
+  deleteEventMessage: deleteEventMessageHandler,
 
   getUserById: getUserByIdHandler,
   getUsersByLocation: getUsersByLocationHandler,
@@ -25,11 +30,8 @@ api.register({
   updateUser: updateUserHandler,
   deleteUser: deleteUserHandler,
 
-  createMessage: createMessageHandler,
-  getMessageById: getMessageByIdHandler,
-  updateMessage: updateMessageHandler,
-  deleteMessage: deleteMessageHandler,
-
+  getPendingBuddyRequests: getPendingBuddyRequestsHandler,
+  getAcceptedBuddies: getAcceptedBuddiesHandler,
   createBuddyRequest: createBuddyRequestHandler,
   getBuddyRequestById: getBuddyRequestByIdHandler,
   updateBuddyRequestStatus: updateBuddyRequestStatusHandler,
@@ -38,9 +40,10 @@ api.register({
   createTeam: createTeamHandler,
   getTeamById: getTeamByIdHandler,
   getTeamsByLocation: getTeamsByLocationHandler,
+  searchTeams: searchTeamsHandler,
   updateTeam: updateTeamHandler,
   deleteTeam: deleteTeamHandler,
-  getTeamMembers: getTeamMembersHandler,
+  getTeamMembers: getTeamMembersHandler
 });
 
 // Initialize the API

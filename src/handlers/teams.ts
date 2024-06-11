@@ -1,5 +1,5 @@
 import { Context } from 'openapi-backend';
-import { createTeam, getTeamById, updateTeamById, deleteTeamById, queryTeams } from '../services/dynamoDbGeoService';
+import { createTeam, getTeamById, updateTeamById, deleteTeamById, queryTeams, searchTeamsByName } from '../services/dynamoDbGeoService';
 import { getTeamMembersById } from '../services/dynamoDbService';
 import { HttpResponse } from '../utils/response';
 import { extractStringParam } from '../utils/utils';
@@ -48,6 +48,33 @@ export const getTeamsByLocationHandler = async (c: Context): Promise<any> => {
   } catch (error) {
     console.error('Error getting teams by location:', error);
     return HttpResponse.internalServerError({ message: 'Error getting teams by location', error });
+  }
+};
+
+export const searchTeamsHandler = async (c: Context): Promise<any> => {
+  try {
+    const latitude = extractStringParam(c.request.query.latitude);
+    const longitude = extractStringParam(c.request.query.longitude);
+    const radiusInKm = extractStringParam(c.request.query.radiusInKm);
+    const teamName = extractStringParam(c.request.query.teamName);
+
+    if (!latitude || !longitude || !radiusInKm || !teamName) {
+      return HttpResponse.badRequest({ message: 'Latitude, Longitude, Radius in Km, and Team Name are required' });
+    }
+
+    const lat = parseFloat(latitude);
+    const lon = parseFloat(longitude);
+    const radius = parseFloat(radiusInKm);
+
+    if (isNaN(lat) || isNaN(lon) || isNaN(radius)) {
+      return HttpResponse.badRequest({ message: 'Latitude, Longitude, and Radius in Km must be valid numbers' });
+    }
+
+    const teams = await searchTeamsByName(lat, lon, radius, teamName);
+    return HttpResponse.ok(teams);
+  } catch (error) {
+    console.error('Error searching teams:', error);
+    return HttpResponse.internalServerError({ message: 'Error searching teams', error });
   }
 };
 

@@ -1,53 +1,52 @@
 import { Context } from 'openapi-backend';
-import { createMessage, getMessageById, updateMessageById, deleteMessageById } from '../services/dynamoDbService';
+import { getEventMessages, createEventMessage, updateEventMessage, deleteEventMessage } from '../services/dynamoDbService';
 import { HttpResponse } from '../utils/response';
 import { extractStringParam } from '../utils/utils';
 
-export const createMessageHandler = async (c: Context): Promise<any> => {
+export const getEventMessagesHandler = async (c: Context): Promise<any> => {
   try {
+    const eventId = extractStringParam(c.request.params.eventId);
+
+    if (!eventId) {
+      return HttpResponse.badRequest({ message: 'Event ID is required' });
+    }
+
+    const messages = await getEventMessages(eventId);
+    return HttpResponse.ok(messages);
+  } catch (error) {
+    console.error('Error getting event messages:', error);
+    return HttpResponse.internalServerError({ message: 'Error getting event messages', error });
+  }
+};
+
+export const createEventMessageHandler = async (c: Context): Promise<any> => {
+  try {
+    const eventId = extractStringParam(c.request.params.eventId);
     const messageData = c.request.body;
 
-    const createdMessage = await createMessage(messageData);
+    if (!eventId || !messageData.text || !messageData.postedBy) {
+      return HttpResponse.badRequest({ message: 'Event ID, text, and postedBy are required' });
+    }
+
+    const createdMessage = await createEventMessage(eventId, messageData);
     return HttpResponse.created(createdMessage);
   } catch (error) {
-    console.error('Error creating message:', error);
-    return HttpResponse.internalServerError({ message: 'Error creating message', error });
+    console.error('Error creating event message:', error);
+    return HttpResponse.internalServerError({ message: 'Error creating event message', error });
   }
 };
 
-export const getMessageByIdHandler = async (c: Context): Promise<any> => {
+export const updateEventMessageHandler = async (c: Context): Promise<any> => {
   try {
-    const messageId = extractStringParam(c.request.params.messageId);
     const eventId = extractStringParam(c.request.params.eventId);
-
-    if (!messageId || !eventId) {
-      return HttpResponse.badRequest({ message: 'Message ID and Event ID are required' });
-    }
-
-    const messageData = await getMessageById(messageId, eventId);
-
-    if (!messageData) {
-      return HttpResponse.notFound({ message: 'Message not found' });
-    }
-
-    return HttpResponse.ok(messageData);
-  } catch (error) {
-    console.error('Error getting message:', error);
-    return HttpResponse.internalServerError({ message: 'Error getting message', error });
-  }
-};
-
-export const updateMessageHandler = async (c: Context): Promise<any> => {
-  try {
     const messageId = extractStringParam(c.request.params.messageId);
-    const eventId = extractStringParam(c.request.params.eventId);
     const updateData = c.request.body;
 
-    if (!messageId || !eventId) {
-      return HttpResponse.badRequest({ message: 'Message ID and Event ID are required' });
+    if (!eventId || !messageId) {
+      return HttpResponse.badRequest({ message: 'Event ID and Message ID are required' });
     }
 
-    const updatedMessage = await updateMessageById(messageId, eventId, updateData);
+    const updatedMessage = await updateEventMessage(eventId, messageId, updateData);
 
     if (!updatedMessage) {
       return HttpResponse.notFound({ message: 'Message not found' });
@@ -60,16 +59,16 @@ export const updateMessageHandler = async (c: Context): Promise<any> => {
   }
 };
 
-export const deleteMessageHandler = async (c: Context): Promise<any> => {
+export const deleteEventMessageHandler = async (c: Context): Promise<any> => {
   try {
-    const messageId = extractStringParam(c.request.params.messageId);
     const eventId = extractStringParam(c.request.params.eventId);
+    const messageId = extractStringParam(c.request.params.messageId);
 
-    if (!messageId || !eventId) {
-      return HttpResponse.badRequest({ message: 'Message ID and Event ID are required' });
+    if (!eventId || !messageId) {
+      return HttpResponse.badRequest({ message: 'Event ID and Message ID are required' });
     }
 
-    await deleteMessageById(messageId, eventId);
+    await deleteEventMessage(eventId, messageId);
     return HttpResponse.noContent();
   } catch (error) {
     console.error('Error deleting message:', error);

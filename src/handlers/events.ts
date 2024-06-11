@@ -1,6 +1,6 @@
 import { Context } from 'openapi-backend';
-import { createEvent, getEventById, updateEventById, deleteEventById, queryEvents } from '../services/dynamoDbGeoService';
-import { getEventAttendeesById } from '../services/dynamoDbService';
+import { createEvent, getEventById, updateEventById, deleteEventById, queryEvents, searchEventsByTitle } from '../services/dynamoDbGeoService';
+import { getEventAttendeesById, getEventMessages, createEventMessage, updateEventMessage, deleteEventMessage } from '../services/dynamoDbService';
 import { HttpResponse } from '../utils/response';
 import { extractStringParam } from '../utils/utils';
 
@@ -48,6 +48,33 @@ export const getEventsByLocationHandler = async (c: Context): Promise<any> => {
   } catch (error) {
     console.error('Error getting events by location:', error);
     return HttpResponse.internalServerError({ message: 'Error getting events by location', error });
+  }
+};
+
+export const searchEventsHandler = async (c: Context): Promise<any> => {
+  try {
+    const latitude = extractStringParam(c.request.query.latitude);
+    const longitude = extractStringParam(c.request.query.longitude);
+    const radiusInKm = extractStringParam(c.request.query.radiusInKm);
+    const eventName = extractStringParam(c.request.query.eventName);
+
+    if (!latitude || !longitude || !radiusInKm || !eventName) {
+      return HttpResponse.badRequest({ message: 'Latitude, Longitude, Radius in Km, and Event Name are required' });
+    }
+
+    const lat = parseFloat(latitude);
+    const lon = parseFloat(longitude);
+    const radius = parseFloat(radiusInKm);
+
+    if (isNaN(lat) || isNaN(lon) || isNaN(radius)) {
+      return HttpResponse.badRequest({ message: 'Latitude, Longitude, and Radius in Km must be valid numbers' });
+    }
+
+    const events = await searchEventsByTitle(lat, lon, radius, eventName);
+    return HttpResponse.ok(events);
+  } catch (error) {
+    console.error('Error searching events:', error);
+    return HttpResponse.internalServerError({ message: 'Error searching events', error });
   }
 };
 

@@ -63,6 +63,11 @@ export const queryEvents = async (latitude: number, longitude: number, radiusInK
   return result.map(item => AWS.DynamoDB.Converter.unmarshall(item) as Event);
 };
 
+export const searchEventsByTitle = async (latitude: number, longitude: number, radiusInKm: number, eventTitle: string): Promise<Event[]> => {
+  const teams = await queryEvents(latitude, longitude, radiusInKm);
+  return teams.filter(team => team.title.toLowerCase().includes(eventTitle.toLowerCase()));
+};
+
 export const getEventById = async (eventId: string, entityType: string): Promise<Event | null> => {
   const params = {
     TableName: TABLE.Events,
@@ -224,6 +229,11 @@ export const queryUsers = async (latitude: number, longitude: number, radiusInKm
     },
   });
   return result.map(item => AWS.DynamoDB.Converter.unmarshall(item) as User);
+};
+
+export const searchTeamsByName = async (latitude: number, longitude: number, radiusInKm: number, teamName: string): Promise<Team[]> => {
+  const teams = await queryTeams(latitude, longitude, radiusInKm);
+  return teams.filter(team => team.teamName.toLowerCase().includes(teamName.toLowerCase()));
 };
 
 export const getUserById = async (userId: string): Promise<User | null> => {

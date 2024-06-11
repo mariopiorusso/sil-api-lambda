@@ -5,6 +5,7 @@ import { BuddyMessage } from '../models/buddyMessage';
 import { User } from '../models/user';
 import { convertToDynamoDBItem } from '../utils/utils';
 import { TABLE } from '../utils/constants';
+import { v4 as uuidv4 } from 'uuid';
 
 const ddb = new AWS.DynamoDB.DocumentClient();
 
@@ -14,7 +15,7 @@ export const createMessage = async (data: Message): Promise<Message> => {
     TableName: TABLE.Messages,
     Item: {
       ...data,
-      createdAt: new Date().toISOString(), // Auto-generate timestamp
+      createdAt: new Date().toISOString(),
     },
   };
   await ddb.put(params).promise();
@@ -66,7 +67,7 @@ export const createBuddyRequest = async (data: Buddy): Promise<Buddy> => {
     TableName: TABLE.Buddies,
     Item: {
       ...data,
-      sentAt: new Date().toISOString(), // Auto-generate timestamp
+      sentAt: new Date().toISOString(),
     },
   };
   await ddb.put(params).promise();
@@ -124,7 +125,7 @@ export const createBuddyMessage = async (data: BuddyMessage): Promise<BuddyMessa
     TableName: TABLE.BuddyMessages,
     Item: {
       ...convertToDynamoDBItem(data),
-      createdAt: new Date().toISOString(), // Auto-generate timestamp
+      createdAt: new Date().toISOString(),
     }
   };
   await ddb.put(params).promise();
@@ -238,4 +239,85 @@ export const getTeamMembersById = async (teamId: string): Promise<User[]> => {
 
   const usersResult = await ddb.batchGet(usersParams).promise();
   return usersResult.Responses ? usersResult.Responses[TABLE.Users].map(item => AWS.DynamoDB.Converter.unmarshall(item) as User) : [];
+};
+
+export const getEventMessages = async (eventId: string): Promise<Message[]> => {
+  const params = {
+    TableName: TABLE.Messages,
+    KeyConditionExpression: 'eventId = :eventId',
+    ExpressionAttributeValues: {
+      ':eventId': eventId,
+    },
+  };
+
+  const result = await ddb.query(params).promise();
+  return result.Items ? result.Items.map(item => AWS.DynamoDB.Converter.unmarshall(item) as Message) : [];
+};
+
+export const createEventMessage = async (eventId: string, data: Partial<Message>): Promise<Message> => {
+  const messageId = uuidv4();
+  const createdAt = new Date().toISOString();
+  const message: Message = {
+    eventId,
+    messageId,
+    createdAt,
+    postedBy: data.postedBy!,
+    content: data.content!,
+    imageS3Key: data.imageS3Key,
+  };
+
+  const params = {
+    TableName: TABLE.Messages,
+    Item: message,
+  };
+
+  await ddb.put(params).promise();
+  return message;
+};
+
+export const updateEventMessage = async (eventId: string, messageId: string, data: Partial<Message>): Promise<Message | null> => {
+  const params = {
+    TableName: TABLE.Messages,
+    Key: {
+      eventId,
+      messageId,
+    },
+    UpdateExpression: 'set ' + Object.keys(data).map((key) => `#${key} = :${key}`).join(', '),
+    ExpressionAttributeNames: Object.fromEntries(Object.keys(data).map((key) => [`#${key}`, key])),
+    ExpressionAttributeValues: AWS.DynamoDB.Converter.marshall(Object.fromEntries(Object.entries(data).map(([key, value]) => [`:${key}`, value]))),
+    ReturnValues: 'UPDATED_NEW',
+  };
+
+  const result = await ddb.update(params).promise();
+  return result.Attributes ? AWS.DynamoDB.Converter.unmarshall(result.Attributes) as Message : null;
+};
+
+export const deleteEventMessage = async (eventId: string, messageId: string): Promise<void> => {
+  const params = {
+    TableName: TABLE.Messages,
+    Key: {
+      eventId,
+      messageId,
+    },
+  };
+
+  await ddb.delete(params).promise();
+};
+
+export const getBuddies = async (userId: string, status: string): Promise<Buddy[]> => {
+  const params = {
+    TableName: TABLE.Buddies,
+    IndexName: 'UserIdStatusGSI',
+    KeyConditionExpression: 'userId = :userId and #status = :status',
+    ExpressionAttributeValues: {
+      ':userId': userId,
+      ':status': status,
+    },
+    ExpressionAttributeNames: {
+      '#status': 'status',
+    },
+  };
+
+  const result = await ddb.query(params).promise();
+  return result.Items ? result.Items.map(item => AWS.DynamoDB.Converter.unmarshall(item) as Buddy) : [];
 };

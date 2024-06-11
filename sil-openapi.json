@@ -1,439 +1,45 @@
 {
-    "openapi": "3.0.1",
+    "openapi": "3.0.0",
     "info": {
-        "title": "Sports Interest Locator API",
-        "version": "1.0.0",
-        "description": "API for managing events, users, messages, buddies, and teams."
+        "title": "Buddy API",
+        "version": "1.0.0"
     },
     "paths": {
-        "/events/{eventId}": {
-            "get": {
-                "summary": "Get Event by ID",
-                "operationId": "getEventById",
-                "parameters": [
-                    {
-                        "name": "eventId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Event retrieved successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Event"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Event not found"
-                    }
-                }
-            },
-            "put": {
-                "summary": "Update Event by ID",
-                "operationId": "updateEvent",
-                "parameters": [
-                    {
-                        "name": "eventId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
+        "/buddies": {
+            "post": {
+                "summary": "Create a buddy request",
+                "operationId": "createBuddyRequest",
                 "requestBody": {
-                    "required": true,
+                    "description": "Buddy request object to be created",
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Event"
+                                "$ref": "#/components/schemas/Buddy"
                             }
                         }
-                    }
+                    },
+                    "required": true
                 },
                 "responses": {
-                    "200": {
-                        "description": "Event updated successfully",
+                    "201": {
+                        "description": "Buddy request created successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Event"
+                                    "$ref": "#/components/schemas/Buddy"
                                 }
                             }
                         }
                     },
-                    "404": {
-                        "description": "Event not found"
-                    }
-                }
-            },
-            "delete": {
-                "summary": "Delete Event by ID",
-                "operationId": "deleteEvent",
-                "parameters": [
-                    {
-                        "name": "eventId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Event deleted successfully"
-                    },
-                    "404": {
-                        "description": "Event not found"
-                    }
-                }
-            }
-        },
-        "/events/location": {
-            "get": {
-                "summary": "Get Events by Location",
-                "operationId": "getEventsByLocation",
-                "parameters": [
-                    {
-                        "name": "latitude",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "number"
-                        }
-                    },
-                    {
-                        "name": "longitude",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "number"
-                        }
-                    },
-                    {
-                        "name": "radiusInKm",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "number"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Events retrieved successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/Event"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/events/{eventId}/attendees": {
-            "get": {
-                "summary": "Get Event Attendees",
-                "operationId": "getEventAttendees",
-                "parameters": [
-                    {
-                        "name": "eventId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Event attendees retrieved successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/User"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{userId}": {
-            "get": {
-                "summary": "Get User by ID",
-                "operationId": "getUserById",
-                "parameters": [
-                    {
-                        "name": "userId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "User retrieved successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/User"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "User not found"
-                    }
-                }
-            },
-            "put": {
-                "summary": "Update User by ID",
-                "operationId": "updateUser",
-                "parameters": [
-                    {
-                        "name": "userId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/User"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "User updated successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/User"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "User not found"
-                    }
-                }
-            },
-            "delete": {
-                "summary": "Delete User by ID",
-                "operationId": "deleteUser",
-                "parameters": [
-                    {
-                        "name": "userId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "User deleted successfully"
-                    },
-                    "404": {
-                        "description": "User not found"
-                    }
-                }
-            }
-        },
-        "/users/location": {
-            "get": {
-                "summary": "Get Users by Location",
-                "operationId": "getUsersByLocation",
-                "parameters": [
-                    {
-                        "name": "latitude",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "number"
-                        }
-                    },
-                    {
-                        "name": "longitude",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "number"
-                        }
-                    },
-                    {
-                        "name": "radiusInKm",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "number"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Users retrieved successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/User"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/messages/{eventId}/{messageId}": {
-            "get": {
-                "summary": "Get Message by ID",
-                "operationId": "getMessageById",
-                "parameters": [
-                    {
-                        "name": "eventId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "messageId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Message retrieved successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Message"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Message not found"
-                    }
-                }
-            },
-            "put": {
-                "summary": "Update Message by ID",
-                "operationId": "updateMessage",
-                "parameters": [
-                    {
-                        "name": "eventId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "messageId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Message"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Message updated successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Message"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Message not found"
-                    }
-                }
-            },
-            "delete": {
-                "summary": "Delete Message by ID",
-                "operationId": "deleteMessage",
-                "parameters": [
-                    {
-                        "name": "eventId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "messageId",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Message deleted successfully"
-                    },
-                    "404": {
-                        "description": "Message not found"
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             }
         },
         "/buddies/{userId}/{buddyId}": {
             "get": {
-                "summary": "Get Buddy Request by ID",
+                "summary": "Get a buddy request by ID",
                 "operationId": "getBuddyRequestById",
                 "parameters": [
                     {
@@ -466,11 +72,14 @@
                     },
                     "404": {
                         "description": "Buddy request not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             },
             "put": {
-                "summary": "Update Buddy Request Status",
+                "summary": "Update a buddy request status",
                 "operationId": "updateBuddyRequestStatus",
                 "parameters": [
                     {
@@ -491,7 +100,7 @@
                     }
                 ],
                 "requestBody": {
-                    "required": true,
+                    "description": "Updated status for the buddy request",
                     "content": {
                         "application/json": {
                             "schema": {
@@ -505,10 +114,14 @@
                                             "declined"
                                         ]
                                     }
-                                }
+                                },
+                                "required": [
+                                    "status"
+                                ]
                             }
                         }
-                    }
+                    },
+                    "required": true
                 },
                 "responses": {
                     "200": {
@@ -523,11 +136,14 @@
                     },
                     "404": {
                         "description": "Buddy request not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             },
             "delete": {
-                "summary": "Delete Buddy Request",
+                "summary": "Delete a buddy request",
                 "operationId": "deleteBuddyRequest",
                 "parameters": [
                     {
@@ -548,18 +164,264 @@
                     }
                 ],
                 "responses": {
-                    "204": {
+                    "200": {
                         "description": "Buddy request deleted successfully"
                     },
                     "404": {
                         "description": "Buddy request not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/buddies/pending": {
+            "get": {
+                "summary": "Get pending buddy requests",
+                "operationId": "getPendingBuddyRequests",
+                "responses": {
+                    "200": {
+                        "description": "Pending buddy requests retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Buddy"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/buddies/accepted": {
+            "get": {
+                "summary": "Get accepted buddies",
+                "operationId": "getAcceptedBuddies",
+                "responses": {
+                    "200": {
+                        "description": "Accepted buddies retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Buddy"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/messages/{eventId}": {
+            "get": {
+                "summary": "Get messages for an event",
+                "operationId": "getEventMessages",
+                "parameters": [
+                    {
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Messages retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Message"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Event not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a message for an event",
+                "operationId": "createEventMessage",
+                "parameters": [
+                    {
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Message object to be created",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Message"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Message created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Message"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/messages/{eventId}/{messageId}": {
+            "put": {
+                "summary": "Update a message for an event",
+                "operationId": "updateEventMessage",
+                "parameters": [
+                    {
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "messageId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Updated message object",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Message"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Message updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Message"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Message not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete a message for an event",
+                "operationId": "deleteEventMessage",
+                "parameters": [
+                    {
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "messageId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Message deleted successfully"
+                    },
+                    "404": {
+                        "description": "Message not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/teams": {
+            "post": {
+                "summary": "Create a team",
+                "operationId": "createTeam",
+                "requestBody": {
+                    "description": "Team object to be created",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Team"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Team created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Team"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             }
         },
         "/teams/{teamId}": {
             "get": {
-                "summary": "Get Team by ID",
+                "summary": "Get a team by ID",
                 "operationId": "getTeamById",
                 "parameters": [
                     {
@@ -584,11 +446,14 @@
                     },
                     "404": {
                         "description": "Team not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             },
             "put": {
-                "summary": "Update Team by ID",
+                "summary": "Update a team",
                 "operationId": "updateTeam",
                 "parameters": [
                     {
@@ -601,14 +466,15 @@
                     }
                 ],
                 "requestBody": {
-                    "required": true,
+                    "description": "Updated team object",
                     "content": {
                         "application/json": {
                             "schema": {
                                 "$ref": "#/components/schemas/Team"
                             }
                         }
-                    }
+                    },
+                    "required": true
                 },
                 "responses": {
                     "200": {
@@ -623,11 +489,14 @@
                     },
                     "404": {
                         "description": "Team not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             },
             "delete": {
-                "summary": "Delete Team by ID",
+                "summary": "Delete a team",
                 "operationId": "deleteTeam",
                 "parameters": [
                     {
@@ -640,18 +509,21 @@
                     }
                 ],
                 "responses": {
-                    "204": {
+                    "200": {
                         "description": "Team deleted successfully"
                     },
                     "404": {
                         "description": "Team not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             }
         },
         "/teams/location": {
             "get": {
-                "summary": "Get Teams by Location",
+                "summary": "Get teams by location",
                 "operationId": "getTeamsByLocation",
                 "parameters": [
                     {
@@ -659,7 +531,7 @@
                         "in": "query",
                         "required": true,
                         "schema": {
-                            "type": "number"
+                            "type": "string"
                         }
                     },
                     {
@@ -667,7 +539,7 @@
                         "in": "query",
                         "required": true,
                         "schema": {
-                            "type": "number"
+                            "type": "string"
                         }
                     },
                     {
@@ -675,7 +547,7 @@
                         "in": "query",
                         "required": true,
                         "schema": {
-                            "type": "number"
+                            "type": "string"
                         }
                     }
                 ],
@@ -692,13 +564,50 @@
                                 }
                             }
                         }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/teams/search": {
+            "get": {
+                "summary": "Search teams",
+                "operationId": "searchTeams",
+                "parameters": [
+                    {
+                        "name": "query",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Teams retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Team"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             }
         },
         "/teams/{teamId}/members": {
             "get": {
-                "summary": "Get Team Members",
+                "summary": "Get team members",
                 "operationId": "getTeamMembers",
                 "parameters": [
                     {
@@ -718,11 +627,418 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/events/{eventId}": {
+            "get": {
+                "summary": "Get an event by ID",
+                "operationId": "getEventById",
+                "parameters": [
+                    {
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Event"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Event not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update an event",
+                "operationId": "updateEvent",
+                "parameters": [
+                    {
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Updated event object",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Event"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Event updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Event"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Event not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete an event",
+                "operationId": "deleteEvent",
+                "parameters": [
+                    {
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event deleted successfully"
+                    },
+                    "404": {
+                        "description": "Event not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/events/location": {
+            "get": {
+                "summary": "Get events by location",
+                "operationId": "getEventsByLocation",
+                "parameters": [
+                    {
+                        "name": "latitude",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "longitude",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "radiusInKm",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Events retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Event"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/events/search": {
+            "get": {
+                "summary": "Search events",
+                "operationId": "searchEvents",
+                "parameters": [
+                    {
+                        "name": "query",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Events retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Event"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/events/{eventId}/attendees": {
+            "get": {
+                "summary": "Get event attendees",
+                "operationId": "getEventAttendees",
+                "parameters": [
+                    {
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event attendees retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/users": {
+            "post": {
+                "summary": "Create a user",
+                "operationId": "createUser",
+                "requestBody": {
+                    "description": "User object to be created",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/User"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "User created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/users/{userId}": {
+            "get": {
+                "summary": "Get a user by ID",
+                "operationId": "getUserById",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update a user",
+                "operationId": "updateUser",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Updated user object",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/User"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "User updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete a user",
+                "operationId": "deleteUser",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User deleted successfully"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/users/location": {
+            "get": {
+                "summary": "Get users by location",
+                "operationId": "getUsersByLocation",
+                "parameters": [
+                    {
+                        "name": "latitude",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "longitude",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "radiusInKm",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Users retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
                                         "$ref": "#/components/schemas/User"
                                     }
                                 }
                             }
                         }
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 }
             }
@@ -730,43 +1046,6 @@
     },
     "components": {
         "schemas": {
-            "User": {
-                "type": "object",
-                "properties": {
-                    "userId": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "email": {
-                        "type": "string"
-                    },
-                    "sportsInterests": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "location": {
-                        "type": "object",
-                        "properties": {
-                            "latitude": {
-                                "type": "number"
-                            },
-                            "longitude": {
-                                "type": "number"
-                            }
-                        }
-                    },
-                    "skillLevel": {
-                        "type": "string"
-                    },
-                    "ratings": {
-                        "type": "number"
-                    }
-                }
-            },
             "Buddy": {
                 "type": "object",
                 "properties": {
@@ -785,84 +1064,21 @@
                         ]
                     },
                     "sentAt": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "date-time"
                     },
                     "connectionDate": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "date-time"
                     }
-                }
-            },
-            "BuddyMessage": {
-                "type": "object",
-                "properties": {
-                    "eventId": {
-                        "type": "string"
-                    },
-                    "messageId": {
-                        "type": "string"
-                    },
-                    "createdAt": {
-                        "type": "string"
-                    },
-                    "postedBy": {
-                        "type": "string"
-                    },
-                    "text": {
-                        "type": "string"
-                    },
-                    "imageS3Key": {
-                        "type": "string"
-                    }
-                }
-            },
-            "Event": {
-                "type": "object",
-                "properties": {
-                    "eventId": {
-                        "type": "string"
-                    },
-                    "entityType": {
-                        "type": "string"
-                    },
-                    "sportType": {
-                        "type": "string"
-                    },
-                    "location": {
-                        "type": "object",
-                        "properties": {
-                            "latitude": {
-                                "type": "number"
-                            },
-                            "longitude": {
-                                "type": "number"
-                            }
-                        }
-                    },
-                    "title": {
-                        "type": "string"
-                    },
-                    "schedule": {
-                        "type": "string"
-                    },
-                    "description": {
-                        "type": "string"
-                    },
-                    "userId": {
-                        "type": "string"
-                    },
-                    "requestedAt": {
-                        "type": "string"
-                    },
-                    "userStatus": {
-                        "type": "string"
-                    },
-                    "joinedAt": {
-                        "type": "string"
-                    },
-                    "role": {
-                        "type": "string"
-                    }
-                }
+                },
+                "required": [
+                    "userId",
+                    "buddyId",
+                    "status",
+                    "sentAt",
+                    "connectionDate"
+                ]
             },
             "Message": {
                 "type": "object",
@@ -874,7 +1090,8 @@
                         "type": "string"
                     },
                     "createdAt": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "date-time"
                     },
                     "postedBy": {
                         "type": "string"
@@ -885,7 +1102,14 @@
                     "imageS3Key": {
                         "type": "string"
                     }
-                }
+                },
+                "required": [
+                    "eventId",
+                    "messageId",
+                    "createdAt",
+                    "postedBy",
+                    "content"
+                ]
             },
             "Team": {
                 "type": "object",
@@ -893,45 +1117,80 @@
                     "teamId": {
                         "type": "string"
                     },
-                    "entityType": {
+                    "name": {
                         "type": "string"
                     },
-                    "sportType": {
+                    "members": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "teamId",
+                    "name",
+                    "members",
+                    "createdAt"
+                ]
+            },
+            "Event": {
+                "type": "object",
+                "properties": {
+                    "eventId": {
                         "type": "string"
                     },
-                    "teamName": {
+                    "name": {
                         "type": "string"
                     },
                     "location": {
-                        "type": "object",
-                        "properties": {
-                            "latitude": {
-                                "type": "number"
-                            },
-                            "longitude": {
-                                "type": "number"
-                            }
-                        }
-                    },
-                    "description": {
                         "type": "string"
                     },
+                    "startTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "endTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "eventId",
+                    "name",
+                    "location",
+                    "startTime",
+                    "endTime"
+                ]
+            },
+            "User": {
+                "type": "object",
+                "properties": {
                     "userId": {
                         "type": "string"
                     },
-                    "requestedAt": {
+                    "name": {
                         "type": "string"
                     },
-                    "userStatus": {
-                        "type": "string"
+                    "email": {
+                        "type": "string",
+                        "format": "email"
                     },
-                    "joinedAt": {
-                        "type": "string"
-                    },
-                    "role": {
-                        "type": "string"
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
                     }
-                }
+                },
+                "required": [
+                    "userId",
+                    "name",
+                    "email",
+                    "createdAt"
+                ]
             }
         }
     }
