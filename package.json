@@ -6,8 +6,8 @@
   "scripts": {
     "test": "jest",
     "build": "tsc",
-    "package": "cd dist && zip -r function.zip .",
-    "deploy": "npm run build && npm run package && aws lambda update-function-code --function-name SILAPILambda --zip-file fileb://dist/function.zip"
+    "package": "mkdir -p dist && cp -r node_modules dist/ && cp package.json dist/ && cp sil-openapi.json dist/ && cd dist && zip -r function.zip .",
+    "deploy": "npm run build && npm run package && aws lambda update-function-code --function-name SportsIsLife --zip-file fileb://dist/function.zip"
   },
   "keywords": [],
   "author": "",

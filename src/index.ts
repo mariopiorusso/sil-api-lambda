@@ -46,11 +46,18 @@ api.register({
   getTeamMembers: getTeamMembersHandler
 });
 
+console.log("API registered")
+
 // Initialize the API
 api.init();
 
+console.log("API initiated")
+
 // Lambda handler
 export const handler: APIGatewayProxyHandler = async (event, context) => {
+
+  console.log('Received event:', JSON.stringify(event, null, 2));
+
   // Normalize headers and query parameters
   const normalizedHeaders = normalizeParams(event.headers);
   const normalizedQuery = normalizeParams(event.queryStringParameters);
@@ -62,19 +69,34 @@ export const handler: APIGatewayProxyHandler = async (event, context) => {
     event.path
   );
 
-  // Await the result of the API handler
-  const response = await api.handleRequest({
-    method: event.httpMethod,
-    path: fullPath,
-    body: event.body,
-    headers: normalizedHeaders,
-    query: normalizedQuery,
-  });
+  console.log('Normalized headers:', JSON.stringify(normalizedHeaders));
+  console.log('Normalized query parameters:', JSON.stringify(normalizedQuery));
+  console.log('Full path:', fullPath);
 
-  // Return the API response
-  return {
-    statusCode: response.statusCode,
-    headers: response.headers,
-    body: response.body,
-  };
+  try {
+    // Await the result of the API handler
+    console.log('Calling api.handleRequest...');
+    const response = await api.handleRequest({
+      method: event.httpMethod,
+      path: fullPath,
+      body: event.body,
+      headers: normalizedHeaders,
+      query: normalizedQuery,
+    });
+
+    console.log('API response:', JSON.stringify(response));
+
+    // Return the API response
+    return {
+      statusCode: response.statusCode,
+      headers: response.headers,
+      body: response.body,
+    };
+  } catch (error) {
+    console.error('Error handling request:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Internal Server Error2' }),
+    };
+  }
 };

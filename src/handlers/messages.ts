@@ -24,8 +24,8 @@ export const createEventMessageHandler = async (c: Context): Promise<any> => {
     const eventId = extractStringParam(c.request.params.eventId);
     const messageData = c.request.body;
 
-    if (!eventId || !messageData.text || !messageData.postedBy) {
-      return HttpResponse.badRequest({ message: 'Event ID, text, and postedBy are required' });
+    if (!eventId || !messageData.content) {
+      return HttpResponse.badRequest({ message: 'Event ID and text are required' });
     }
 
     const createdMessage = await createEventMessage(eventId, messageData);
@@ -42,8 +42,8 @@ export const updateEventMessageHandler = async (c: Context): Promise<any> => {
     const messageId = extractStringParam(c.request.params.messageId);
     const updateData = c.request.body;
 
-    if (!eventId || !messageId) {
-      return HttpResponse.badRequest({ message: 'Event ID and Message ID are required' });
+    if (!eventId || !messageId || updateData.content) {
+      return HttpResponse.badRequest({ message: 'Event ID, Message ID and Content are required' });
     }
 
     const updatedMessage = await updateEventMessage(eventId, messageId, updateData);

@@ -5,9 +5,11 @@ import { Event } from '../models/event';
 import { Team } from '../models/team';
 import { User } from '../models/user';
 import { convertToDynamoDBItem } from '../utils/utils';
-import { GEO_HASHKEY_LENGTH, TABLE } from '../utils/constants';
+import { GEO_HASHKEY_LENGTH, TABLE, TABLE_GSIS } from '../utils/constants';
 
-const ddb = new AWS.DynamoDB.DocumentClient();
+const ddbClient = new AWS.DynamoDB.DocumentClient();
+
+const ddb = new AWS.DynamoDB();
 
 // Configuration for events
 const eventConfig = new ddbGeo.GeoDataManagerConfiguration(ddb, TABLE.Events);
@@ -26,6 +28,7 @@ const userGeoTableManager = new ddbGeo.GeoDataManager(userConfig);
 
 // Event functions
 export const createEvent = async (data: Event): Promise<Event> => {
+  console.log('Create event service', data)
   const eventId = uuidv4();
   const { location, ...otherData } = data;
   const params = {
@@ -69,16 +72,19 @@ export const searchEventsByTitle = async (latitude: number, longitude: number, r
 };
 
 export const getEventById = async (eventId: string, entityType: string): Promise<Event | null> => {
+  console.log('getEventById service executing..');
   const params = {
     TableName: TABLE.Events,
-    Key: {
-      eventId: eventId,
-      entityType: entityType,
+    IndexName: TABLE_GSIS.EventIdEntityTypeGSI,
+    KeyConditionExpression: 'eventId = :eventId and entityType = :entityType',
+    ExpressionAttributeValues: {
+      ':eventId': eventId,
+      ':entityType': entityType
     }
   };
-  const result = await ddb.get(params).promise();
-  if (result.Item) {
-    return AWS.DynamoDB.Converter.unmarshall(result.Item) as Event;
+  const result = await ddbClient.query(params).promise();
+  if (result.Items && result.Items.length > 0) {
+    return result.Items[0] as Event;
   }
   return null;
 };
@@ -95,7 +101,7 @@ export const updateEventById = async (eventId: string, entityType: string, data:
     ExpressionAttributeValues: AWS.DynamoDB.Converter.marshall(Object.fromEntries(Object.entries(data).map(([key, value]) => [`:${key}`, value]))),
     ReturnValues: 'UPDATED_NEW',
   };
-  const result = await ddb.update(params).promise();
+  const result = await ddbClient.update(params).promise();
   return result.Attributes ? AWS.DynamoDB.Converter.unmarshall(result.Attributes) as Event : null;
 };
 
@@ -107,7 +113,7 @@ export const deleteEventById = async (eventId: string, entityType: string): Prom
       entityType: entityType,
     },
   };
-  await ddb.delete(params).promise();
+  await ddbClient.delete(params).promise();
 };
 
 // Team functions
@@ -157,7 +163,7 @@ export const getTeamById = async (teamId: string, entityType: string): Promise<T
       entityType: entityType,
     }
   };
-  const result = await ddb.get(params).promise();
+  const result = await ddbClient.get(params).promise();
   if (result.Item) {
     return AWS.DynamoDB.Converter.unmarshall(result.Item) as Team;
   }
@@ -176,7 +182,7 @@ export const updateTeamById = async (teamId: string, entityType: string, data: P
     ExpressionAttributeValues: AWS.DynamoDB.Converter.marshall(Object.fromEntries(Object.entries(data).map(([key, value]) => [`:${key}`, value]))),
     ReturnValues: 'UPDATED_NEW',
   };
-  const result = await ddb.update(params).promise();
+  const result = await ddbClient.update(params).promise();
   return result.Attributes ? AWS.DynamoDB.Converter.unmarshall(result.Attributes) as Team : null;
 };
 
@@ -188,7 +194,7 @@ export const deleteTeamById = async (teamId: string, entityType: string): Promis
       entityType: entityType,
     },
   };
-  await ddb.delete(params).promise();
+  await ddbClient.delete(params).promise();
 };
 
 // User functions
@@ -243,7 +249,7 @@ export const getUserById = async (userId: string): Promise<User | null> => {
       userId: userId,
     }
   };
-  const result = await ddb.get(params).promise();
+  const result = await ddbClient.get(params).promise();
   if (result.Item) {
     return AWS.DynamoDB.Converter.unmarshall(result.Item) as User;
   }
@@ -261,7 +267,7 @@ export const updateUserById = async (userId: string, data: Partial<User>): Promi
     ExpressionAttributeValues: AWS.DynamoDB.Converter.marshall(Object.fromEntries(Object.entries(data).map(([key, value]) => [`:${key}`, value]))),
     ReturnValues: 'UPDATED_NEW',
   };
-  const result = await ddb.update(params).promise();
+  const result = await ddbClient.update(params).promise();
   return result.Attributes ? AWS.DynamoDB.Converter.unmarshall(result.Attributes) as User : null;
 };
 
@@ -272,5 +278,5 @@ export const deleteUserById = async (userId: string): Promise<void> => {
       userId: userId,
     },
   };
-  await ddb.delete(params).promise();
+  await ddbClient.delete(params).promise();
 };

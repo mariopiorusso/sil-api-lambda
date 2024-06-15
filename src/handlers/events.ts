@@ -5,6 +5,7 @@ import { HttpResponse } from '../utils/response';
 import { extractStringParam } from '../utils/utils';
 
 export const getEventByIdHandler = async (c: Context): Promise<any> => {
+  console.log('getEventByIdHandler executing..')
   try {
     const eventId = extractStringParam(c.request.params.eventId);
 
@@ -95,11 +96,12 @@ export const getEventAttendeesHandler = async (c: Context): Promise<any> => {
 };
 
 export const createEventHandler = async (c: Context): Promise<any> => {
+  console.log('Create event handler', c.request.body)
   try {
     const eventData = c.request.body;
 
-    if (!eventData.location || !eventData.entityType) {
-      return HttpResponse.badRequest({ message: 'Location and Entity Type are required' });
+    if (!eventData.location) {
+      return HttpResponse.badRequest({ message: 'Location is required' });
     }
 
     const createdEvent = await createEvent(eventData);
